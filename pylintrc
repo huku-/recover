@@ -1,0 +1,65 @@
+[MAIN]
+ignore=ida-venv
+persistent=no
+load-plugins=
+    pylint.extensions.check_elif,
+    pylint.extensions.code_style,
+    pylint.extensions.comparison_placement,
+    pylint.extensions.docparams,
+    pylint.extensions.for_any_all,
+    pylint.extensions.overlapping_exceptions,
+    pylint.extensions.set_membership,
+    pylint.extensions.typing
+suggestion-mode=yes
+unsafe-load-any-extension=no
+
+[MESSAGES CONTROL]
+disable=
+    consider-using-assignment-expr,
+    consider-using-in,
+    else-if-used,
+    inconsistent-return-statements,
+    missing-docstring,
+    similarities,
+    super-with-arguments,
+    too-few-public-methods,
+    too-many-arguments,
+    too-many-branches,
+    too-many-locals,
+    too-many-statements,
+    useless-object-inheritance,
+    wrong-import-order
+
+[MISCELLANEOUS]
+notes=TODO,XXX
+
+[VARIABLES]
+dummy-variables-rgx=_$
+
+[FORMAT]
+max-line-length=100
+ignore-long-lines=(?x)(
+  ^\s*(\#\ )?<?https?://\S+>?$|
+  ^\s*(from\s+\S+\s+)?import\s+.+$)
+single-line-if-stmt=no
+single-line-class-stmt=no
+indent-string='    '
+indent-after-paren=4
+expected-line-ending-format=LF
+
+[BASIC]
+good-names=i,j,k,main,_
+include-naming-hint=yes
+no-docstring-rgx=(_.*|main)$
+
+[TYPECHECK]
+ignored-modules=ida_*,idc
+
+[CLASSES]
+defining-attr-methods=__init__,__new__,__post_init__
+
+[REFACTORING]
+max-nested-blocks=8
+
+[STRING]
+check-quote-consistency=yes
