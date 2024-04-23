@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """Genetic compile-unit map optimizer implementation."""
 
-from typing import Callable, List, Tuple, Type
+from collections.abc import Callable
 
 from recover.cu_map import CUInfo, CUMap
 from recover.exporter import Data
@@ -16,14 +16,12 @@ import numpy
 import pygad
 
 
-__author__ = 'Chariton Karamitas <huku@census-labs.com>'
+__author__ = "Chariton Karamitas <huku@census-labs.com>"
 
-__all__ = ['Genetic']
-
+__all__ = ["Genetic"]
 
 
 _MULTIPLIER = 64
-
 
 
 #
@@ -35,7 +33,6 @@ if object not in pygad.GA.supported_int_types:
     pygad.GA.supported_int_types.append(object)
 
 
-
 class Genetic(Optimizer):
     """Genetic compile-unit map optimizer implementation.
 
@@ -44,11 +41,12 @@ class Genetic(Optimizer):
         cu_map: The compile-unit map to optimize.
         fitness_function: Fitness function to use.
     """
-    def __init__(self, data: Data, cu_map: CUMap,
-            fitness_function: Type[FitnessFunction]) -> None:
-        super(Genetic, self).__init__(data, cu_map, fitness_function)
-        self._cu_scores = {}
 
+    def __init__(
+        self, data: Data, cu_map: CUMap, fitness_function: type[FitnessFunction]
+    ) -> None:
+        super(Genetic, self).__init__(data, cu_map, fitness_function)
+        self._cu_scores: dict[int, float] = {}
 
     def _get_crossover_function(self, num_bits: int, max_bits_set: int) -> Callable:
 
@@ -68,16 +66,15 @@ class Genetic(Optimizer):
                 for i in random.sample(set_bits, num_samples):
                     child |= 1 << i
 
-                assert 1 <= child.bit_count() <= 3, \
-                    f'Invalid crossover state {child:b} ({num_samples + 1} set bits, not in [1,3])'
+                assert (
+                    1 <= child.bit_count() <= 3
+                ), f"Invalid crossover state {child:b} ({num_samples + 1} set bits, not in [1,3])"
 
                 children.append([child])
 
             return numpy.array(children, copy=False)
 
         return _crossover_func
-
-
 
     #
     # https://stackoverflow.com/questions/69544556/passing-arguments-to-pygad-fitness-function
@@ -87,7 +84,7 @@ class Genetic(Optimizer):
         def _mutate(state: int, num_bits: int) -> int:
 
             new_state = -1
-            mutation_str = ''
+            mutation_str = ""
 
             set_bits = []
             for i in range(num_bits):
@@ -101,7 +98,7 @@ class Genetic(Optimizer):
                 num_samples = random.randrange(max_bits_set)
                 for i in random.sample(range(num_bits - 1), num_samples):
                     new_state |= 1 << i
-                self._logger.debug('RES %s -> %s', bin(state), bin(new_state))
+                self._logger.debug("RES %s -> %s", bin(state), bin(new_state))
 
             elif num_bits_set == 2:
                 while new_state == -1:
@@ -111,73 +108,74 @@ class Genetic(Optimizer):
                         while i in set_bits:
                             i = random.randrange(num_bits)
                         new_state = state | (1 << i)
-                        mutation_str = 'NEW'
+                        mutation_str = "NEW"
                     elif mutation == 1:
                         new_state = state ^ (1 << set_bits[0])
-                        mutation_str = 'REM_LOW'
+                        mutation_str = "REM_LOW"
                     elif mutation == 2 and set_bits[0] + 1 < num_bits - 1:
                         i = set_bits[0]
                         new_state = (state ^ (1 << i)) | (1 << (i + 1))
-                        mutation_str = 'MOV_LOW_L'
+                        mutation_str = "MOV_LOW_L"
                     elif mutation == 3 and set_bits[0] > 0:
                         i = set_bits[0]
                         new_state = (state ^ (1 << i)) | (1 << (i - 1))
-                        mutation_str = 'MOV_LOW_R'
+                        mutation_str = "MOV_LOW_R"
 
             elif num_bits_set == 3:
                 while new_state == -1:
                     mutation = random.randrange(6)
                     if mutation == 0:
                         new_state = state ^ (1 << set_bits[0])
-                        mutation_str = 'REM_LOW'
+                        mutation_str = "REM_LOW"
                     elif mutation == 1:
                         new_state = state ^ (1 << set_bits[1])
-                        mutation_str = 'REM_MID'
+                        mutation_str = "REM_MID"
                     elif mutation == 2 and set_bits[1] + 1 < num_bits - 1:
                         i = set_bits[1]
                         new_state = (state ^ (1 << i)) | (1 << (i + 1))
-                        mutation_str = 'MOV_MID_L'
+                        mutation_str = "MOV_MID_L"
                     elif mutation == 3 and set_bits[1] > 0:
                         i = set_bits[1]
                         new_state = (state ^ (1 << i)) | (1 << (i - 1))
-                        mutation_str = 'MOV_MID_R'
+                        mutation_str = "MOV_MID_R"
                     elif mutation == 2 and set_bits[0] + 1 < num_bits - 1:
                         i = set_bits[0]
                         new_state = (state ^ (1 << i)) | (1 << (i + 1))
-                        mutation_str = 'MOV_LOW_L'
+                        mutation_str = "MOV_LOW_L"
                     elif mutation == 3 and set_bits[0] > 0:
                         i = set_bits[0]
                         new_state = (state ^ (1 << i)) | (1 << (i - 1))
-                        mutation_str = 'MOV_LOW_R'
+                        mutation_str = "MOV_LOW_R"
 
             elif num_bits_set > 3:
                 new_state = 1 << (num_bits - 1)
                 num_samples = random.randrange(max_bits_set)
                 for i in random.sample(set_bits, num_samples):
                     new_state |= 1 << i
-                mutation_str = 'RES'
+                mutation_str = "RES"
 
-            self._logger.debug('%s %s -> %s', mutation_str, bin(state),
-                bin(new_state))
+            self._logger.debug("%s %s -> %s", mutation_str, bin(state), bin(new_state))
 
-            assert new_state != -1 and new_state.bit_count() <= 3, \
-                f'Mutation algorithm generated invalid state {new_state:b}'
+            assert (
+                new_state != -1 and new_state.bit_count() <= 3
+            ), f"Mutation algorithm generated invalid state {new_state:b}"
 
             return new_state
 
-
         def _mutation_function(parents, _):
-            return numpy.array([
-                [_mutate(int(parents[0][0]), num_bits)],
-                [_mutate(int(parents[1][0]), num_bits)]
-            ], copy=False)
+            return numpy.array(
+                [
+                    [_mutate(int(parents[0][0]), num_bits)],
+                    [_mutate(int(parents[1][0]), num_bits)],
+                ],
+                copy=False,
+            )
 
         return _mutation_function
 
-
-
-    def _get_fitness_function(self, fitness_function: FitnessFunction,
-            funcs: List[int]) -> Callable:
+    def _get_fitness_function(
+        self, fitness_function: FitnessFunction, funcs: list[int]
+    ) -> Callable:
         """Return a callable to be used as a fitness function during the genetic
         algorithm's state exploration. We have to resort to this trick because
         the fitness function prototype used internally by PyGAD is different
@@ -191,31 +189,28 @@ class Genetic(Optimizer):
         Returns:
             Fitness function callable in a prototype used by PyGAD.
         """
+
         @functools.wraps(fitness_function.score)
         def _fitness_function(state: numpy.ndarray, _) -> float:
 
             state = int(state[0])
 
-            assert 1 <= state.bit_count() <= 3, \
-                f'Invalid state {state:b} ({state.bit_count()} set bits, not in [1,3])'
+            assert (
+                1 <= state.bit_count() <= 3
+            ), f"Invalid state {state:b} ({state.bit_count()} set bits, not in [1,3])"
 
             return fitness_function.score(State(state, funcs))
 
         return _fitness_function
 
-
-
-    def _optimize(self, cu: CUInfo, next_cu: CUInfo) -> Tuple[int, int]:
+    def _optimize(self, cu: CUInfo, next_cu: CUInfo) -> tuple[int, int]:
 
         cu_scores = self._cu_scores
 
         num_changes = 0
         new_cu_id = -1
 
-        state = State.from_cu_list([
-             cu.get_func_eas(),
-             next_cu.get_func_eas()
-        ])
+        state = State.from_cu_list([cu.get_func_eas(), next_cu.get_func_eas()])
 
         fitness_function = self._fitness_function(self._data, self._cu_map)
 
@@ -229,12 +224,19 @@ class Genetic(Optimizer):
         min_state = 1 << (num_bits - 1)
         max_state = sum(1 << (num_bits - i - 1) for i in range(max_bits_set))
 
-        self._logger.info('Examining CUs %d and %d (%d bits), state %s (%f)',
-            cu.cu_id, next_cu.cu_id, num_bits, bin(state), score)
+        self._logger.info(
+            "Examining CUs %d and %d (%d bits), state %s (%f)",
+            cu.cu_id,
+            next_cu.cu_id,
+            num_bits,
+            bin(state),
+            score,
+        )
 
-        self._logger.info('State space %s - %s', bin(min_state), bin(max_state))
+        self._logger.info("State space %s - %s", bin(min_state), bin(max_state))
 
-        ga = pygad.GA(num_generations=num_bits * _MULTIPLIER,
+        ga = pygad.GA(
+            num_generations=num_bits * _MULTIPLIER,
             num_parents_mating=2,
             fitness_func=self._get_fitness_function(fitness_function, state.funcs),
             sol_per_pop=2 + 1,
@@ -245,15 +247,21 @@ class Genetic(Optimizer):
             gene_space=[min_state, max_state],
             mutation_type=self._get_mutation_function(num_bits, max_bits_set),
             mutation_num_genes=1,
-            crossover_type=self._get_crossover_function(num_bits, max_bits_set))
+            crossover_type=self._get_crossover_function(num_bits, max_bits_set),
+        )
         ga.run()
 
         max_state, max_score, _ = ga.best_solution()
         max_state = State(int(max_state[0]), state.funcs)
 
         if max_score > score and state != max_state:
-            self._logger.info('Accept %s (%f) -> %s (%f)', bin(state), score,
-                bin(max_state), max_score)
+            self._logger.info(
+                "Accept %s (%f) -> %s (%f)",
+                bin(state),
+                score,
+                bin(max_state),
+                max_score,
+            )
             cu_scores[cu.cu_id] = max_score
             num_changes, new_cu_id = self._update_cu_map(cu, next_cu, max_state)
 

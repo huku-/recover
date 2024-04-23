@@ -3,7 +3,6 @@
 
 from __future__ import annotations
 
-from typing import Optional
 from pathlib import Path
 
 import enum
@@ -16,32 +15,24 @@ import networkx
 try:
     import pygraphviz
 except ImportError:
-    warnings.warn('Graph visualization disabled because pygraphviz is not installed')
+    warnings.warn("Graph visualization disabled because pygraphviz is not installed")
 
 
+__author__ = "Chariton Karamitas <huku@census-labs.com>"
 
-__author__ = 'Chariton Karamitas <huku@census-labs.com>'
-
-__all__ = [
-    'NodeType',
-    'EdgeType',
-    'EdgeClass',
-    'AFCG',
-    'DFG',
-    'PDG'
-]
+__all__ = ["NodeType", "EdgeType", "EdgeClass", "AFCG", "DFG", "PDG"]
 
 
-
-NODE_TYPE = 'node_type'
-EDGE_TYPE = 'edge_type'
-EDGE_CLASS = 'edge_class'
-SEGMENT = 'segment'
-
+NODE_TYPE = "node_type"
+EDGE_TYPE = "edge_type"
+EDGE_CLASS = "edge_class"
+SEGMENT = "segment"
 
 
 @enum.unique
 class NodeType(enum.IntEnum):
+    """Node attribute representing its type (code vs. data)."""
+
     INVALID = 0
     CODE = 1
     DATA = 2
@@ -49,6 +40,8 @@ class NodeType(enum.IntEnum):
 
 @enum.unique
 class EdgeType(enum.IntEnum):
+    """Edge attribute representing its type (tail and head node types)."""
+
     INVALID = 0
     CODE2CODE = 1
     CODE2DATA = 2
@@ -58,18 +51,21 @@ class EdgeType(enum.IntEnum):
 
 @enum.unique
 class EdgeClass(enum.IntEnum):
+    """Edge attribute representing the relationship of its incident nodes."""
+
     INVALID = 0
     CONTROL_RELATION = 1
     DATA_RELATION = 2
     SEQUENCE = 3
 
 
-
 @enum.unique
 class NodeShape(enum.Enum):
-    INVALID = 'circle'
-    CODE = 'rectangle'
-    DATA = 'diamond'
+    """Graphviz node shape when visualizing."""
+
+    INVALID = "circle"
+    CODE = "rectangle"
+    DATA = "diamond"
 
     @staticmethod
     def from_node_type(node_type: NodeType) -> str:
@@ -78,9 +74,11 @@ class NodeShape(enum.Enum):
 
 @enum.unique
 class NodeColor(enum.Enum):
-    INVALID = 'red'
-    CODE = 'white'
-    DATA = 'yellow'
+    """Graphviz node color when visualizing."""
+
+    INVALID = "red"
+    CODE = "white"
+    DATA = "yellow"
 
     @staticmethod
     def from_node_type(node_type: NodeType) -> str:
@@ -89,11 +87,13 @@ class NodeColor(enum.Enum):
 
 @enum.unique
 class EdgeColor(enum.Enum):
-    INVALID = 'black'
-    CODE2CODE = 'red'
-    CODE2DATA = 'blue'
-    DATA2CODE = 'orange'
-    DATA2DATA = 'cyan'
+    """Graphviz edge color when visualizing."""
+
+    INVALID = "black"
+    CODE2CODE = "red"
+    CODE2DATA = "blue"
+    DATA2CODE = "orange"
+    DATA2DATA = "cyan"
 
     @staticmethod
     def from_edge_type(edge_type: EdgeType) -> str:
@@ -102,24 +102,28 @@ class EdgeColor(enum.Enum):
 
 @enum.unique
 class EdgeStyle(enum.Enum):
-    INVALID = 'bold'
-    CONTROL_RELATION = 'solid'
-    DATA_RELATION = 'dashed'
-    SEQUENCE = 'dotted'
+    """Graphviz edge style when visualizing."""
+
+    INVALID = "bold"
+    CONTROL_RELATION = "solid"
+    DATA_RELATION = "dashed"
+    SEQUENCE = "dotted"
 
     @staticmethod
     def from_edge_class(edge_class: EdgeClass) -> str:
         return EdgeStyle[edge_class.name].value
 
 
-
 class _BaseGraph(networkx.MultiDiGraph):
     """Base graph type inherited by AFCG, DFG and PDG."""
 
-    def add_program_node(self, node: int,
-            node_type: NodeType = NodeType.INVALID,
-            segment: int = 0,
-            name: Optional[str] = None) -> None:
+    def add_program_node(
+        self,
+        node: int,
+        node_type: NodeType = NodeType.INVALID,
+        segment: int = 0,
+        name: str | None = None,
+    ) -> None:
         """Add node in graph. If node already exists, only its attributes are
         updated.
 
@@ -132,11 +136,14 @@ class _BaseGraph(networkx.MultiDiGraph):
         """
         self.add_node(node, node_type=node_type, segment=segment, name=name)
 
-
-    def add_program_edge(self, tail: int, head: int,
-            edge_type: EdgeType = EdgeType.INVALID,
-            edge_class: EdgeClass = EdgeClass.INVALID,
-            size: int = 0) -> None:
+    def add_program_edge(
+        self,
+        tail: int,
+        head: int,
+        edge_type: EdgeType = EdgeType.INVALID,
+        edge_class: EdgeClass = EdgeClass.INVALID,
+        size: int = 0,
+    ) -> None:
         """Add edge in graph. Edge is added only if a similar edge of the same
         edge class does not already exist.
 
@@ -147,36 +154,42 @@ class _BaseGraph(networkx.MultiDiGraph):
             edge_class: Class of edge.
             size: Number of bytes accessed by this edge.
         """
-        if all(data['edge_class'] != edge_class \
-                for data in self.get_edge_data(tail, head, default={}).values()):
-            self.add_edge(tail, head, edge_type=edge_type, edge_class=edge_class,
-                size=size)
-
+        if all(
+            data["edge_class"] != edge_class
+            for data in self.get_edge_data(tail, head, default={}).values()
+        ):
+            self.add_edge(
+                tail, head, edge_type=edge_type, edge_class=edge_class, size=size
+            )
 
     def draw(self, path: Path) -> None:
-        """Export graph to GraphViz dot format.
+        """Export graph to Graphviz dot format.
 
         Args:
             path: Path to file to export graph to.
         """
-        if 'pygraphviz' in sys.modules:
+        if "pygraphviz" in sys.modules:
 
-            agraph = pygraphviz.AGraph(directed=True, splines='ortho')
+            agraph = pygraphviz.AGraph(directed=True, splines="ortho")
 
             for node, data in self.nodes(data=True):
-                agraph.add_node(node,
-                    shape=NodeShape.from_node_type(data['node_type']),
-                    fillcolor=NodeColor.from_node_type(data['node_type']),
-                    style='filled',
-                    label=data['name'])
+                agraph.add_node(
+                    node,
+                    shape=NodeShape.from_node_type(data["node_type"]),
+                    fillcolor=NodeColor.from_node_type(data["node_type"]),
+                    style="filled",
+                    label=data["name"],
+                )
 
             for tail, head, data in self.edges(data=True):
-                agraph.add_edge(tail, head,
-                    color=EdgeColor.from_edge_type(data['edge_type']),
-                    style=EdgeStyle.from_edge_class(data['edge_class']))
+                agraph.add_edge(
+                    tail,
+                    head,
+                    color=EdgeColor.from_edge_type(data["edge_type"]),
+                    style=EdgeStyle.from_edge_class(data["edge_class"]),
+                )
 
             agraph.write(path)
-
 
     def store(self, path: Path | str) -> None:
         """Store graph to file.
@@ -184,9 +197,8 @@ class _BaseGraph(networkx.MultiDiGraph):
         Args:
             path: Path to file to store graph to.
         """
-        with open(path, 'wb') as fp:
+        with open(path, "wb") as fp:
             pickle.dump(self, fp)
-
 
     @classmethod
     def load(cls, path: Path) -> _BaseGraph:
@@ -198,22 +210,18 @@ class _BaseGraph(networkx.MultiDiGraph):
         Returns:
             A descendant of this class representing the loaded graph.
         """
-        with open(path, 'rb') as fp:
+        with open(path, "rb") as fp:
             self = pickle.load(fp)
-            assert isinstance(self, cls), \
-                f'Invalid graph type {type(self)}'
+            assert isinstance(self, cls), f"Invalid graph type {type(self)}"
             return self
-
 
 
 class AFCG(_BaseGraph):
     """*Augmented Function Call Graph* (AFCG)."""
-    pass
 
 
 class DFG(_BaseGraph):
     """*Data Flow Graph* (DFG)."""
-    pass
 
 
 class PDG(_BaseGraph):
@@ -222,19 +230,22 @@ class PDG(_BaseGraph):
     def get_afcg(self) -> AFCG:
 
         def _filter_node(node: int) -> bool:
-            return self.nodes[node]['node_type'] == NodeType.CODE
+            return self.nodes[node]["node_type"] == NodeType.CODE
 
         def _filter_edge(tail: int, head: int, key: int) -> bool:
-            return self.edges[tail, head, key]['edge_type'] == EdgeType.CODE2CODE
+            return self.edges[tail, head, key]["edge_type"] == EdgeType.CODE2CODE
 
-        return AFCG(networkx.classes.graphviews.subgraph_view(self,
-            filter_node=_filter_node, filter_edge=_filter_edge))
-
+        return AFCG(
+            networkx.classes.graphviews.subgraph_view(
+                self, filter_node=_filter_node, filter_edge=_filter_edge
+            )
+        )
 
     def get_dfg(self) -> DFG:
 
         def _filter_edge(tail: int, head: int, key: int) -> bool:
-            return self.edges[tail, head, key]['edge_type'] != EdgeType.CODE2CODE
+            return self.edges[tail, head, key]["edge_type"] != EdgeType.CODE2CODE
 
-        return DFG(networkx.classes.graphviews.subgraph_view(self,
-            filter_edge=_filter_edge))
+        return DFG(
+            networkx.classes.graphviews.subgraph_view(self, filter_edge=_filter_edge)
+        )

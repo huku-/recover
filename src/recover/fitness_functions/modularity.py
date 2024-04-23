@@ -6,8 +6,6 @@
    https://en.wikipedia.org/wiki/Modularity_(networks)
 """
 
-from typing import Set
-
 from recover.cu_map import CUMap
 from recover.fitness_function import FitnessFunction
 from recover.state import State
@@ -16,11 +14,9 @@ from recover.util import Data
 from recover import util
 
 
+__author__ = "Chariton Karamitas <huku@census-labs.com>"
 
-__author__ = 'Chariton Karamitas <huku@census-labs.com>'
-
-__all__ = ['Modularity']
-
+__all__ = ["Modularity"]
 
 
 class Modularity(FitnessFunction):
@@ -34,17 +30,18 @@ class Modularity(FitnessFunction):
         data: Exported program data.
         cu_map: The program's compile-unit map.
     """
+
     def __init__(self, data: Data, cu_map: CUMap) -> None:
         super(Modularity, self).__init__(data, cu_map)
         self._in_degrees = dict(data.pdg.in_degree())
         self._out_degrees = dict(data.pdg.out_degree())
         self._m = sum(self._out_degrees.values())
 
-    def _compute_modularity(self, community: Set[int]) -> float:
+    def _compute_modularity(self, community: set[int]) -> float:
         link_sum = sum(1 for _, u in self._data.pdg.edges(community) if u in community)
         out_degree_sum = sum(self._out_degrees[u] for u in community)
         in_degree_sum = sum(self._in_degrees[u] for u in community)
-        return link_sum / self._m - out_degree_sum * in_degree_sum * (1 / self._m ** 2)
+        return link_sum / self._m - out_degree_sum * in_degree_sum * (1 / self._m**2)
 
     def score(self, state: State) -> float:
         cus = state.to_cu_list()

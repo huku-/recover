@@ -18,11 +18,9 @@ from recover import util
 import networkx
 
 
+__author__ = "Chariton Karamitas <huku@census-labs.com>"
 
-__author__ = 'Chariton Karamitas <huku@census-labs.com>'
-
-__all__ = ['ClusteringCoefficient']
-
+__all__ = ["ClusteringCoefficient"]
 
 
 class ClusteringCoefficient(FitnessFunction):
@@ -36,6 +34,7 @@ class ClusteringCoefficient(FitnessFunction):
         data: Exported program data.
         cu_map: The program's compile-unit map.
     """
+
     def __init__(self, data: Data, cu_map: CUMap) -> None:
         super(ClusteringCoefficient, self).__init__(data, cu_map)
         self._graph = networkx.DiGraph(self._data.pdg)

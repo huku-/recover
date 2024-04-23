@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """Various utility functions."""
 
-from typing import Dict, Iterable, List, Optional, Set, Tuple
+from collections.abc import Iterable
 
 import bisect
 import collections
@@ -15,25 +15,28 @@ from recover.graphs import DFG, EdgeClass, EdgeType
 from recover.exporter import Data
 
 
-__author__ = 'Chariton Karamitas <huku@census-labs.com>'
+__author__ = "Chariton Karamitas <huku@census-labs.com>"
 
 __all__ = [
-    'get_func_data_refs',
-    'to_pdg_partition',
-    'removed_sequence_edges_view',
-    'removed_sequence_edges_view_partial',
-    'segment_view'
+    "get_func_data_refs",
+    "to_pdg_partition",
+    "removed_sequence_edges_view",
+    "removed_sequence_edges_view_partial",
+    "segment_view",
 ]
 
 
-DataRef = Tuple[int, int, int]
-DataRefs = Dict[int, List[DataRef]]
+DataRef = tuple[int, int, int]
+DataRefs = dict[int, list[DataRef]]
 
 
-
-def get_func_data_refs(dfg: DFG, func_ea: int | Iterable[int],
-        debug: bool = False, merge: bool = False,
-        skip_sels: Optional[List[int]] = None) -> DataRefs:
+def get_func_data_refs(
+    dfg: DFG,
+    func_ea: int | Iterable[int],
+    debug: bool = False,
+    merge: bool = False,
+    skip_sels: list[int] | None = None,
+) -> DataRefs:
     """Get data references of function(s).
 
     Args:
@@ -49,14 +52,15 @@ def get_func_data_refs(dfg: DFG, func_ea: int | Iterable[int],
     Returns:
         Data references of function(s).
     """
-    data_eas: List[int] = []
-    data_sizes: List[int] = []
-    data_freqs: List[int] = []
-    data_sels: List[int] = []
+    data_eas: list[int] = []
+    data_sizes: list[int] = []
+    data_freqs: list[int] = []
+    data_sels: list[int] = []
 
-    def _overlap(start_ea_i: int, end_ea_i: int,
-            start_ea_j: int, end_ea_j: int) -> bool:
-        return not(end_ea_i < start_ea_j or end_ea_j < start_ea_i)
+    def _overlap(
+        start_ea_i: int, end_ea_i: int, start_ea_j: int, end_ea_j: int
+    ) -> bool:
+        return not (end_ea_i < start_ea_j or end_ea_j < start_ea_i)
 
     def _add_data_ref(ea: int, size: int, sel: int) -> bool:
         i = bisect.bisect_left(data_eas, ea)
@@ -73,16 +77,19 @@ def get_func_data_refs(dfg: DFG, func_ea: int | Iterable[int],
         return exists
 
     def _get_data_refs(ea: int) -> None:
-        for _, succ_ea, key, edge_type in \
-                dfg.edges(nbunch=ea, keys=True, data='edge_type'):
-            size = dfg.edges[ea, succ_ea, key]['size']
-            sel = dfg.nodes[succ_ea]['segment']
-            if not _add_data_ref(succ_ea, size, sel) and \
-                    edge_type != EdgeType.DATA2CODE:
+        for _, succ_ea, key, edge_type in dfg.edges(
+            nbunch=ea, keys=True, data="edge_type"
+        ):
+            size = dfg.edges[ea, succ_ea, key]["size"]
+            sel = dfg.nodes[succ_ea]["segment"]
+            if (
+                not _add_data_ref(succ_ea, size, sel)
+                and edge_type != EdgeType.DATA2CODE
+            ):
                 _get_data_refs(succ_ea)
 
-    for _, succ_ea, size in dfg.edges(nbunch=func_ea, data='size'):
-        sel = dfg.nodes[succ_ea]['segment']
+    for _, succ_ea, size in dfg.edges(nbunch=func_ea, data="size"):
+        sel = dfg.nodes[succ_ea]["segment"]
         _add_data_ref(succ_ea, size, sel)
         _get_data_refs(succ_ea)
 
@@ -112,20 +119,21 @@ def get_func_data_refs(dfg: DFG, func_ea: int | Iterable[int],
 
     if debug:
         if isinstance(func_ea, list):
-            k = ','.join([f'{ea:#x}' for ea in func_ea])
+            k = ",".join([f"{ea:#x}" for ea in func_ea])
         else:
-            k = f'{func_ea:#x}'
+            k = f"{func_ea:#x}"
         d = collections.defaultdict(list)
         for sel in data_refs:
             for ea, size, freq in sorted(data_refs[sel]):
-                d[sel].append((f'{ea:#x}', size, freq))
-        print(json.dumps({f'{k}': d}, indent=4))
+                d[sel].append((f"{ea:#x}", size, freq))
+        print(json.dumps({f"{k}": d}, indent=4))
 
     return data_refs
 
 
-def to_pdg_partition(data: Data, partition: List[List[int]],
-        disjoint: bool = True) -> List[Set[int]]:
+def to_pdg_partition(
+    data: Data, partition: list[list[int]], disjoint: bool = True
+) -> list[set[int]]:
     """Take a partition of program functions, provided as a list-of-lists of
     function addresses, and convert it to a PDG partition, a list-of-sets of
     function and data addresses (addresses of data elements accessed by those
@@ -145,20 +153,21 @@ def to_pdg_partition(data: Data, partition: List[List[int]],
         PDG partition corresponding to ``partition``.
     """
 
-    def _flatten_data_refs(data_refs: DataRefs) -> List[int]:
+    def _flatten_data_refs(data_refs: DataRefs) -> list[int]:
         flat_data_refs = []
         for sel in data_refs:
             for sel_data_refs in data_refs[sel]:
                 flat_data_refs.append(sel_data_refs[0])
         return flat_data_refs
 
-    pdg_partition = []
+    pdg_partition: list[set[int]] = []
 
     for func_eas in partition:
         data_refs = _flatten_data_refs(get_func_data_refs(data.dfg, func_eas))
         if disjoint:
-            pdg_partition.append(set(func_eas + data_refs) - \
-                set().union(*pdg_partition))
+            pdg_partition.append(
+                set(func_eas + data_refs) - set().union(*pdg_partition)
+            )
         else:
             pdg_partition.append(set(func_eas + data_refs))
 
@@ -175,11 +184,13 @@ def removed_sequence_edges_view(graph: Graph) -> Graph:
     Returns:
         A graph view over the given graph.
     """
-    def _filter_edge(tail: int, head: int, key: int) -> bool:
-        return graph.edges[tail, head, key]['edge_class'] != EdgeClass.SEQUENCE
 
-    return type(graph)(networkx.classes.graphviews.subgraph_view(graph,
-        filter_edge=_filter_edge))
+    def _filter_edge(tail: int, head: int, key: int) -> bool:
+        return graph.edges[tail, head, key]["edge_class"] != EdgeClass.SEQUENCE
+
+    return type(graph)(
+        networkx.classes.graphviews.subgraph_view(graph, filter_edge=_filter_edge)
+    )
 
 
 def removed_sequence_edges_view_partial(graph: Graph) -> Graph:
@@ -193,12 +204,17 @@ def removed_sequence_edges_view_partial(graph: Graph) -> Graph:
     Returns:
         A graph view over the given graph.
     """
-    def _filter_edge(tail: int, head: int, key: int) -> bool:
-        return graph.edges[tail, head, key]['edge_class'] != EdgeClass.SEQUENCE or \
-            graph.out_degree(tail) == 1 or graph.in_degree(head) == 1
 
-    return type(graph)(networkx.classes.graphviews.subgraph_view(graph,
-        filter_edge=_filter_edge))
+    def _filter_edge(tail: int, head: int, key: int) -> bool:
+        return (
+            graph.edges[tail, head, key]["edge_class"] != EdgeClass.SEQUENCE
+            or graph.out_degree(tail) == 1
+            or graph.in_degree(head) == 1
+        )
+
+    return type(graph)(
+        networkx.classes.graphviews.subgraph_view(graph, filter_edge=_filter_edge)
+    )
 
 
 def segment_view(graph: Graph, sel: int) -> Graph:
@@ -212,8 +228,10 @@ def segment_view(graph: Graph, sel: int) -> Graph:
     Returns:
         A graph view over the given graph.
     """
-    def _filter_node(node: int) -> bool:
-        return graph.nodes[node].get('segment') == sel
 
-    return type(graph)(networkx.classes.graphviews.subgraph_view(graph,
-        filter_node=_filter_node))
+    def _filter_node(node: int) -> bool:
+        return graph.nodes[node].get("segment") == sel
+
+    return type(graph)(
+        networkx.classes.graphviews.subgraph_view(graph, filter_node=_filter_node)
+    )

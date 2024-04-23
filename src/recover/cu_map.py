@@ -24,7 +24,7 @@ to each compile-unit. It exposes a simple API for accessing and iterating
 
 from __future__ import annotations
 
-from typing import Dict, Iterator, List, Optional, Tuple
+from collections.abc import Iterator
 
 import bisect
 import dataclasses
@@ -32,9 +32,9 @@ import pickle
 import pprint
 
 
-__author__ = 'Chariton Karamitas <huku@census-labs.com>'
+__author__ = "Chariton Karamitas <huku@census-labs.com>"
 
-__all__ = ['CUInfo', 'CUMap']
+__all__ = ["CUInfo", "CUMap"]
 
 
 @dataclasses.dataclass
@@ -42,9 +42,10 @@ class CUInfo(object):
     """Represents a compile-unit in the program. It holds the addresses and
     indices of functions belonging to the compile-unit.
     """
+
     cu_id: int
-    bounds: Tuple[int, int]
-    funcs: List[int]
+    bounds: tuple[int, int]
+    funcs: list[int]
 
     def __eq__(self, other: object) -> bool:
         if not isinstance(other, CUInfo):
@@ -54,7 +55,7 @@ class CUInfo(object):
     def __len__(self) -> int:
         return len(self.funcs)
 
-    def get_func_idxs(self) -> List[int]:
+    def get_func_idxs(self) -> list[int]:
         """Return the list of function indices in this compile-unit.
 
         Returns:
@@ -62,14 +63,13 @@ class CUInfo(object):
         """
         return list(range(*self.bounds))
 
-    def get_func_eas(self) -> List[int]:
+    def get_func_eas(self) -> list[int]:
         """Return the list of function addresses in this compile-unit.
 
         Returns:
             List of function addresses.
         """
         return list(self.funcs)
-
 
 
 class CUMap(object):
@@ -80,7 +80,7 @@ class CUMap(object):
         funcs: List of function addresses to be assigned to compile-units.
     """
 
-    def __init__(self, funcs: List[int]) -> None:
+    def __init__(self, funcs: list[int]) -> None:
         super(CUMap, self).__init__()
         self._funcs = funcs
         self._func_to_cu = [-1] * len(funcs)
@@ -98,9 +98,8 @@ class CUMap(object):
         cu_map._func_to_cu = list(self._func_to_cu)
         return cu_map
 
-
     @property
-    def funcs(self) -> List[int]:
+    def funcs(self) -> list[int]:
         """Return the list of functions in this compile-unit map.
 
         Returns:
@@ -109,8 +108,7 @@ class CUMap(object):
         """
         return list(self._funcs)
 
-
-    def get_invalid_cus(self) -> Dict[int, int]:
+    def get_invalid_cus(self) -> dict[int, int]:
         """Get list of invalid compile-units.
 
         Invalid compile-units are those whose boundaries overlap with other
@@ -133,7 +131,6 @@ class CUMap(object):
                 i += 1
         return invalid
 
-
     def get_next_cu_id(self) -> int:
         """Get next available compile-unit identifier. Used for creating a new
         compile-unit.
@@ -144,7 +141,6 @@ class CUMap(object):
         """
         return max(self._func_to_cu) + 1
 
-
     def _get_cu_index(self, cu_id: int, start: int = 0) -> int:
         try:
             i = self._func_to_cu.index(cu_id, start)
@@ -152,27 +148,23 @@ class CUMap(object):
             i = -1
         return i
 
-
-    def _get_cu_bounds(self, cu_id: int, start: int = 0) -> Optional[Tuple[int, int]]:
+    def _get_cu_bounds(self, cu_id: int, start: int = 0) -> tuple[int, int] | None:
         i = j = self._get_cu_index(cu_id, start=start)
         if i >= 0:
             while j < len(self._func_to_cu) and self._func_to_cu[j] == cu_id:
                 j += 1
             return (i, j)
 
-
-    def _get_cu_funcs(self, bounds: Tuple[int, int]) -> List[int]:
+    def _get_cu_funcs(self, bounds: tuple[int, int]) -> list[int]:
         return [self._funcs[i] for i in range(*bounds)]
 
-
-    def _get_cu_info(self, cu_id: int, start: int = 0) -> Optional[CUInfo]:
+    def _get_cu_info(self, cu_id: int, start: int = 0) -> CUInfo | None:
         bounds = self._get_cu_bounds(cu_id, start=start)
         if bounds:
             funcs = self._get_cu_funcs(bounds)
             return CUInfo(cu_id, bounds, funcs)
 
-
-    def get_first_cu(self) -> Optional[CUInfo]:
+    def get_first_cu(self) -> CUInfo | None:
         """Get first compile-unit.
 
         Returns:
@@ -182,8 +174,7 @@ class CUMap(object):
             cu_id = self._func_to_cu[0]
             return self._get_cu_info(cu_id)
 
-
-    def get_last_cu(self) -> Optional[CUInfo]:
+    def get_last_cu(self) -> CUInfo | None:
         """Get last compile-unit.
 
         Returns:
@@ -193,8 +184,7 @@ class CUMap(object):
             cu_id = self._func_to_cu[-1]
             return self._get_cu_info(cu_id)
 
-
-    def get_next_cu(self, cu_info: CUInfo) -> Optional[CUInfo]:
+    def get_next_cu(self, cu_info: CUInfo) -> CUInfo | None:
         """Get next compile-unit.
 
         Returns:
@@ -211,7 +201,6 @@ class CUMap(object):
                 cu_id = self._func_to_cu[i]
                 return self._get_cu_info(cu_id, start=i)
 
-
     def get_n_next_cus(self, cu_info: CUInfo, n: int) -> Iterator[CUInfo]:
         """Like :meth:`get_next_cu`, but yields the next ``n`` compile-units.
 
@@ -227,8 +216,7 @@ class CUMap(object):
             yield next_cu_info
             cu_info = next_cu_info
 
-
-    def get_prev_cu(self, cu_info: CUInfo) -> Optional[CUInfo]:
+    def get_prev_cu(self, cu_info: CUInfo) -> CUInfo | None:
         """Get previous compile-unit.
 
         Returns:
@@ -240,7 +228,6 @@ class CUMap(object):
         if i >= 1:
             cu_id = self._func_to_cu[i - 1]
             return self._get_cu_info(cu_id)
-
 
     def get_n_prev_cus(self, cu_info: CUInfo, n: int) -> Iterator[CUInfo]:
         """Like :meth:`get_prev_cu`, but yields the previous ``n`` compile-units.
@@ -256,7 +243,6 @@ class CUMap(object):
                 break
             yield prev_cu_info
             cu_info = prev_cu_info
-
 
     def get_cus(self, reverse: bool = False) -> Iterator[CUInfo]:
         """Iterate through all compile-units in the compile-unit map.
@@ -278,8 +264,7 @@ class CUMap(object):
                 yield cu_info
                 cu_info = self.get_next_cu(cu_info)
 
-
-    def get_cu_by_cu_id(self, cu_id: int) -> Optional[CUInfo]:
+    def get_cu_by_cu_id(self, cu_id: int) -> CUInfo | None:
         """Get compile-unit given its compile-unit identifier.
 
         Args:
@@ -291,8 +276,7 @@ class CUMap(object):
         """
         return self._get_cu_info(cu_id)
 
-
-    def get_cu_by_func_idx(self, i: int) -> Optional[CUInfo]:
+    def get_cu_by_func_idx(self, i: int) -> CUInfo | None:
         """Get compile-unit given function specified by index.
 
         Args:
@@ -304,7 +288,6 @@ class CUMap(object):
         if 0 <= i < len(self._func_to_cu):
             return self._get_cu_info(self._func_to_cu[i])
 
-
     def set_cu_by_func_idx(self, i: int, cu_id: int) -> None:
         """Move function, specified by its index, in compile-unit.
 
@@ -314,8 +297,7 @@ class CUMap(object):
         """
         self._func_to_cu[i] = cu_id
 
-
-    def get_cu_by_func_ea(self, ea: int) -> Optional[CUInfo]:
+    def get_cu_by_func_ea(self, ea: int) -> CUInfo | None:
         """Get compile-unit given function specified by address.
 
         Args:
@@ -328,7 +310,6 @@ class CUMap(object):
         if i != len(self._funcs) and self._funcs[i] == ea:
             return self.get_cu_by_func_idx(i)
 
-
     def set_cu_by_func_ea(self, ea: int, cu_id: int) -> None:
         """Move function, specified by address, in compile-unit.
 
@@ -339,7 +320,6 @@ class CUMap(object):
         i = bisect.bisect_left(self._funcs, ea)
         if i != len(self._funcs) and self._funcs[i] == ea:
             self.set_cu_by_func_idx(i, cu_id)
-
 
     def renumber(self) -> None:
         """Renumber all compile-unit identifiers, in this compile-unit map, so
@@ -354,11 +334,9 @@ class CUMap(object):
                 i += 1
             j += 1
 
-
     def show(self) -> None:
         """Pretty-print compile-unit map."""
         pprint.pprint(self._func_to_cu, width=80, compact=True)
-
 
     def save(self, path: str) -> None:
         """Save compile-unit map in a file.
@@ -366,9 +344,8 @@ class CUMap(object):
         Args:
             path: Path of file to save compile-unit map to.
         """
-        with open(path, 'wb') as fp:
+        with open(path, "wb") as fp:
             pickle.dump(self, fp)
-
 
     @classmethod
     def load(cls, path: str) -> CUMap:
@@ -380,8 +357,8 @@ class CUMap(object):
         Returns:
             The loaded compile-unit map.
         """
-        with open(path, 'rb') as fp:
+        with open(path, "rb") as fp:
             self = pickle.load(fp)
             if not isinstance(self, cls):
-                raise TypeError(f'Loaded invalid class {type(self)}')
+                raise TypeError(f"Loaded invalid class {type(self)}")
             return self

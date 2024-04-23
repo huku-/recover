@@ -28,7 +28,6 @@ Example:
 
     >>> data = load_data('/tmp/export_dir')
 """
-from typing import List
 
 from pathlib import Path
 
@@ -41,19 +40,15 @@ import logging
 import pickle
 
 
-__author__ = 'Chariton Karamitas <huku@census-labs.com>'
+__author__ = "Chariton Karamitas <huku@census-labs.com>"
 
-__all__ = [
-    'SegmentClass',
-    'Segment',
-    'Exporter'
-]
-
+__all__ = ["SegmentClass", "Segment", "Exporter"]
 
 
 @enum.unique
 class SegmentClass(enum.IntEnum):
     """Represents the type of an exported segment."""
+
     INVALID = 0
     CODE = 1
     DATA = 2
@@ -62,6 +57,7 @@ class SegmentClass(enum.IntEnum):
 @dataclasses.dataclass
 class Segment(object):
     """Represents an exported segment."""
+
     name: str
     start_ea: int
     end_ea: int
@@ -73,22 +69,23 @@ class Segment(object):
 @dataclasses.dataclass
 class Data(object):
     """Represents exported data as loaded from disk."""
+
     pdg: PDG
     dfg: DFG
     afcg: AFCG
-    sels: List[int]
-    segs: List[Segment]
-
+    sels: list[int]
+    segs: list[Segment]
 
 
 class Exporter(abc.ABC):
     """Base class inherited by all exporters."""
+
     def __init__(self) -> None:
         super(Exporter, self).__init__()
         self._logger = logging.getLogger(self.__class__.__name__)
 
     @abc.abstractmethod
-    def export_segments(self) -> List[Segment]:
+    def export_segments(self) -> list[Segment]:
         """Export information on program segmentation.
 
         Returns:
@@ -106,7 +103,7 @@ class Exporter(abc.ABC):
         """
         raise NotImplementedError
 
-    def export(self, path: Path | str, prefix: str = '') -> None:
+    def export(self, path: Path | str, prefix: str = "") -> None:
         """Start the exporter.
 
         Args:
@@ -115,23 +112,24 @@ class Exporter(abc.ABC):
         """
         if isinstance(path, str):
             path = Path(path)
-        assert path.exists() and path.is_dir(), \
-            f'{path} does not exist or not a directory'
+        assert (
+            path.exists() and path.is_dir()
+        ), f"{path} does not exist or not a directory"
 
-        self._logger.info('Exporting PDG')
+        self._logger.info("Exporting PDG")
         pdg = self.export_pdg()
-        self._logger.info('Storing PDG, AFCG and DFG')
-        pdg.store(path / f'{prefix}pdg.pcl')
-        pdg.get_afcg().store(path / f'{prefix}afcg.pcl')
-        pdg.get_dfg().store(path / f'{prefix}dfg.pcl')
+        self._logger.info("Storing PDG, AFCG and DFG")
+        pdg.store(path / f"{prefix}pdg.pcl")
+        pdg.get_afcg().store(path / f"{prefix}afcg.pcl")
+        pdg.get_dfg().store(path / f"{prefix}dfg.pcl")
 
-        self._logger.info('Exporting segments')
+        self._logger.info("Exporting segments")
         segments = self.export_segments()
-        with open(path / f'{prefix}segs.pcl', 'wb') as fp:
+        with open(path / f"{prefix}segs.pcl", "wb") as fp:
             pickle.dump(segments, fp)
 
 
-def load_data(path: Path | str, prefix: str = '') -> Data:
+def load_data(path: Path | str, prefix: str = "") -> Data:
     """Load exported data from disk.
 
     Args:
@@ -143,21 +141,20 @@ def load_data(path: Path | str, prefix: str = '') -> Data:
     """
     if isinstance(path, str):
         path = Path(path)
-    assert path.exists() and path.is_dir(), \
-        f'{path} does not exist or not a directory'
+    assert path.exists() and path.is_dir(), f"{path} does not exist or not a directory"
 
-    logging.info('Loading PDG, DFG and AFCG')
-    pdg = PDG.load(path / f'{prefix}pdg.pcl')
-    dfg = DFG.load(path / f'{prefix}dfg.pcl')
-    afcg = AFCG.load(path / f'{prefix}afcg.pcl')
+    logging.info("Loading PDG, DFG and AFCG")
+    pdg = PDG.load(path / f"{prefix}pdg.pcl")
+    dfg = DFG.load(path / f"{prefix}dfg.pcl")
+    afcg = AFCG.load(path / f"{prefix}afcg.pcl")
 
-    logging.info('Loading segments')
-    with open(path / f'{prefix}segs.pcl', 'rb') as fp:
+    logging.info("Loading segments")
+    with open(path / f"{prefix}segs.pcl", "rb") as fp:
         segs = pickle.load(fp)
 
     sels = []
     for seg in segs:
-        if 'plt' not in seg.name and 'got' not in seg.name:
+        if "plt" not in seg.name and "got" not in seg.name:
             sels.append(seg.selector)
 
     return Data(pdg=pdg, dfg=dfg, afcg=afcg, sels=sels, segs=segs)

@@ -13,9 +13,9 @@ import abc
 import logging
 
 
-__author__ = 'Chariton Karamitas <huku@census-labs.com>'
+__author__ = "Chariton Karamitas <huku@census-labs.com>"
 
-__all__ = ['Estimator']
+__all__ = ["Estimator"]
 
 
 class Estimator(abc.ABC):
@@ -26,6 +26,7 @@ class Estimator(abc.ABC):
         segment: Selector of executable segment whose functions to partition in
             compile-unit (e.g. .text).
     """
+
     def __init__(self, data: Data, segment: int) -> None:
         super(Estimator, self).__init__()
         self._logger = logging.getLogger(self.__class__.__name__)

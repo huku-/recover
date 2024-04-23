@@ -14,11 +14,9 @@ from recover import util
 import networkx
 
 
+__author__ = "Chariton Karamitas <huku@census-labs.com>"
 
-__author__ = 'Chariton Karamitas <huku@census-labs.com>'
-
-__all__ = ['APSNSE', 'APSPSE']
-
+__all__ = ["APSNSE", "APSPSE"]
 
 
 class _Base(Estimator):
@@ -33,6 +31,7 @@ class _Base(Estimator):
         segment: Selector of executable segment whose functions to partition in
             compile-unit (e.g. .text).
     """
+
     def __init__(self, data: Data, segment: int) -> None:
         super(_Base, self).__init__(data, segment)
         self._afcg = util.segment_view(data.afcg, segment)
@@ -76,6 +75,7 @@ class APSNSE(_Base):
         segment: Selector of executable segment whose functions to partition in
             compile-unit (e.g. .text).
     """
+
     def __init__(self, data: Data, segment: int) -> None:
         super(APSNSE, self).__init__(data, segment)
         self._afcg = util.removed_sequence_edges_view(self._afcg)
@@ -93,6 +93,7 @@ class APSPSE(_Base):
         segment: Selector of executable segment whose functions to partition in
             compile-unit (e.g. .text).
     """
+
     def __init__(self, data: Data, segment: int) -> None:
         super(APSPSE, self).__init__(data, segment)
         self._afcg = util.removed_sequence_edges_view_partial(self._afcg)

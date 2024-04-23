@@ -18,9 +18,9 @@ import abc
 import logging
 
 
-__author__ = 'Chariton Karamitas <huku@census-labs.com>'
+__author__ = "Chariton Karamitas <huku@census-labs.com>"
 
-__all__ = ['FitnessFunction']
+__all__ = ["FitnessFunction"]
 
 
 class FitnessFunction(abc.ABC):
@@ -32,6 +32,7 @@ class FitnessFunction(abc.ABC):
         data: Exported program data.
         cu_map: The program's compile-unit map.
     """
+
     def __init__(self, data: Data, cu_map: CUMap) -> None:
         super(FitnessFunction, self).__init__()
         self._logger = logging.getLogger(self.__class__.__name__)

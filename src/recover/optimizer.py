@@ -14,8 +14,6 @@ a compile-unit map, holding an estimation of how the compile-units are laid out,
 and they attempt to optimize that layout.
 """
 
-from typing import Tuple, Type
-
 from recover.cu_map import CUInfo, CUMap
 from recover.exporter import Data
 from recover.fitness_function import FitnessFunction
@@ -27,11 +25,9 @@ import logging
 from recover import util
 
 
+__author__ = "Chariton Karamitas <huku@census-labs.com>"
 
-__author__ = 'Chariton Karamitas <huku@census-labs.com>'
-
-__all__ = ['Optimizer']
-
+__all__ = ["Optimizer"]
 
 
 class Optimizer(abc.ABC):
@@ -42,14 +38,15 @@ class Optimizer(abc.ABC):
         cu_map: The compile-unit map to optimize.
         fitness_function: Fitness function to be used.
     """
-    def __init__(self, data: Data, cu_map: CUMap,
-            fitness_function: Type[FitnessFunction]) -> None:
+
+    def __init__(
+        self, data: Data, cu_map: CUMap, fitness_function: type[FitnessFunction]
+    ) -> None:
         super(Optimizer, self).__init__()
         self._logger = logging.getLogger(self.__class__.__name__)
         self._data = self._update_data(data)
         self._cu_map = cu_map
         self._fitness_function = fitness_function
-
 
     def _update_data(self, data: Data) -> Data:
         """Update program data so that sequence edges are removed from the PDG
@@ -63,12 +60,13 @@ class Optimizer(abc.ABC):
             Program data with sequence edges removed from PDG and AFCG.
         """
         pdg = util.removed_sequence_edges_view(data.pdg)
-        return Data(pdg=pdg, dfg=data.dfg, afcg=pdg.get_afcg(), sels=data.sels,
-            segs=data.segs)
+        return Data(
+            pdg=pdg, dfg=data.dfg, afcg=pdg.get_afcg(), sels=data.sels, segs=data.segs
+        )
 
-
-    def _update_cu_map(self, cu: CUInfo, next_cu: CUInfo, state: State,
-            validate: bool = False) -> Tuple[int, int]:
+    def _update_cu_map(
+        self, cu: CUInfo, next_cu: CUInfo, state: State, validate: bool = False
+    ) -> tuple[int, int]:
         """Update compile-unit map, with respect to a new state, after an
         optimization step.
 
@@ -97,19 +95,21 @@ class Optimizer(abc.ABC):
 
         num_bits_set = state.bit_count()
 
-        assert 1 <= num_bits_set <= 3, \
-            f'Invalid state {state:b} ({num_bits_set} set bits, not in [1,3])'
+        assert (
+            1 <= num_bits_set <= 3
+        ), f"Invalid state {state:b} ({num_bits_set} set bits, not in [1,3])"
 
         cus = state.to_cu_list()
 
-        assert len(cus) == num_bits_set, \
-            f'Invalid CUs for state {state:b} (expected {num_bits_set}, got {len(cus)})'
+        assert (
+            len(cus) == num_bits_set
+        ), f"Invalid CUs for state {state:b} (expected {num_bits_set}, got {len(cus)})"
 
         if num_bits_set == 1:
             for ea in cus[0]:
                 cu_map.set_cu_by_func_ea(ea, cu.cu_id)
                 num_changes += 1
-            self._logger.debug('Merged CU #%d (CUs %d)', next_cu.cu_id, len(cu_map))
+            self._logger.debug("Merged CU #%d (CUs %d)", next_cu.cu_id, len(cu_map))
         elif num_bits_set == 2:
             for ea in cus[0]:
                 cu_map.set_cu_by_func_ea(ea, cu.cu_id)
@@ -128,19 +128,18 @@ class Optimizer(abc.ABC):
             for ea in cus[2]:
                 cu_map.set_cu_by_func_ea(ea, next_cu.cu_id)
                 num_changes += 1
-            self._logger.debug('Added CU #%d (CUs %d)', new_cu_id, len(cu_map))
+            self._logger.debug("Added CU #%d (CUs %d)", new_cu_id, len(cu_map))
 
         if validate:
             invalid_cus = cu_map.get_invalid_cus()
             if invalid_cus:
                 cu_map.show()
-                raise RuntimeError(f'Found invalid CUs: {invalid_cus}')
+                raise RuntimeError(f"Found invalid CUs: {invalid_cus}")
 
         return num_changes, new_cu_id
 
-
     @abc.abstractmethod
-    def _optimize(self, cu: CUInfo, next_cu: CUInfo) -> Tuple[int, int]:
+    def _optimize(self, cu: CUInfo, next_cu: CUInfo) -> tuple[int, int]:
         """Run an optimization round.
 
         This is an abstract method that descendants of this class must implement.
@@ -158,7 +157,6 @@ class Optimizer(abc.ABC):
         """
         return 0, -1
 
-
     def optimize(self) -> int:
         """Execute optimization rounds until equilibrium is reached.
 
@@ -173,7 +171,7 @@ class Optimizer(abc.ABC):
 
         num_rounds = num_changes = 0
 
-        modified_cus = set([cu.cu_id for cu in cu_map.get_cus()])
+        modified_cus = {cu.cu_id for cu in cu_map.get_cus()}
 
         while modified_cus:
             num_rounds += 1
@@ -181,8 +179,13 @@ class Optimizer(abc.ABC):
             if self._logger.isEnabledFor(logging.INFO):
                 num_modified_cus = len(modified_cus)
                 num_cus = len(cu_map)
-                self._logger.info('Round #%d (%d/%d), CUs %d',
-                    num_rounds, num_modified_cus, num_changes, num_cus)
+                self._logger.info(
+                    "Round #%d (%d/%d), CUs %d",
+                    num_rounds,
+                    num_modified_cus,
+                    num_changes,
+                    num_cus,
+                )
 
             for cu_id in set(modified_cus):
                 cu = cu_map.get_cu_by_cu_id(cu_id)

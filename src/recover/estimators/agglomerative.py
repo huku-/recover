@@ -14,11 +14,9 @@ from recover import util
 import networkx
 
 
+__author__ = "Chariton Karamitas <huku@census-labs.com>"
 
-__author__ = 'Chariton Karamitas <huku@census-labs.com>'
-
-__all__ = ['AGGLNSE', 'AGGLPSE']
-
+__all__ = ["AGGLNSE", "AGGLPSE"]
 
 
 class _Base(Estimator):
@@ -33,10 +31,10 @@ class _Base(Estimator):
         segment: Selector of executable segment whose functions to partition in
             compile-unit (e.g. .text).
     """
+
     def __init__(self, data: Data, segment: int) -> None:
         super(_Base, self).__init__(data, segment)
         self._afcg = util.segment_view(data.afcg, segment)
-
 
     def _build_cu_graph(self, cu_map: CUMap) -> networkx.DiGraph:
         """Build compile-unit graph given a compile-unit map.
@@ -61,16 +59,17 @@ class _Base(Estimator):
                 for succ_ea in self._afcg.successors(func_ea):
                     succ_cu = cu_map.get_cu_by_func_ea(succ_ea)
                     if not succ_cu:
-                        raise ValueError(f'Could not find CU for function at {succ_ea:#x}')
+                        raise ValueError(
+                            f"Could not find CU for function at {succ_ea:#x}"
+                        )
                     if cu.cu_id != succ_cu.cu_id:
                         edge = (cu.cu_id, succ_cu.cu_id)
                         if cu_graph.has_edge(*edge):
-                            cu_graph.edges[edge]['count'] += 1
+                            cu_graph.edges[edge]["count"] += 1
                         else:
                             cu_graph.add_edge(*edge, count=1)
             cu = cu_map.get_next_cu(cu)
         return cu_graph
-
 
     def _count_non_tree_edges(self, cu_graph: networkx.DiGraph) -> int:
         """Count the number of non-tree edges in the compile-unit graph. This is
@@ -85,13 +84,13 @@ class _Base(Estimator):
         """
         num_edges = 0
         for tail, head, label in networkx.dfs_labeled_edges(cu_graph):
-            if tail != head and label == 'nontree':
+            if tail != head and label == "nontree":
                 num_edges += 1
         return num_edges
 
-
-    def _remove_from_cu(self, cu_map: CUMap, cu_graph: networkx.DiGraph,
-            func_ea: int, func_cu: CUInfo) -> None:
+    def _remove_from_cu(
+        self, cu_map: CUMap, cu_graph: networkx.DiGraph, func_ea: int, func_cu: CUInfo
+    ) -> None:
         """
         Remove function from compile-unit and update compile-unit graph edges
         accordingly.
@@ -105,30 +104,30 @@ class _Base(Estimator):
         for ea in self._afcg.predecessors(func_ea):
             cu = cu_map.get_cu_by_func_ea(ea)
             if not cu:
-                raise ValueError(f'Could not find CU for function at {ea:#x}')
+                raise ValueError(f"Could not find CU for function at {ea:#x}")
             edge = (cu.cu_id, func_cu.cu_id)
             if cu_graph.has_edge(*edge):
-                count = cu_graph.edges[edge]['count'] - 1
+                count = cu_graph.edges[edge]["count"] - 1
                 if count == 0:
                     cu_graph.remove_edge(*edge)
                 else:
-                    cu_graph.edges[edge]['count'] = count
+                    cu_graph.edges[edge]["count"] = count
 
         for ea in self._afcg.successors(func_ea):
             cu = cu_map.get_cu_by_func_ea(ea)
             if not cu:
-                raise ValueError(f'Could not find CU for function at {ea:#x}')
+                raise ValueError(f"Could not find CU for function at {ea:#x}")
             edge = (func_cu.cu_id, cu.cu_id)
             if cu_graph.has_edge(*edge):
-                count = cu_graph.edges[edge]['count'] - 1
+                count = cu_graph.edges[edge]["count"] - 1
                 if count == 0:
                     cu_graph.remove_edge(*edge)
                 else:
-                    cu_graph.edges[edge]['count'] = count
+                    cu_graph.edges[edge]["count"] = count
 
-
-    def _move_to_cu(self, cu_map: CUMap, cu_graph: networkx.DiGraph,
-            func_ea: int, func_cu: CUInfo) -> None:
+    def _move_to_cu(
+        self, cu_map: CUMap, cu_graph: networkx.DiGraph, func_ea: int, func_cu: CUInfo
+    ) -> None:
         """
         Move function in compile-unit and update compile-unit graph edges
         accordingly.
@@ -142,28 +141,33 @@ class _Base(Estimator):
         for ea in self._afcg.predecessors(func_ea):
             cu = cu_map.get_cu_by_func_ea(ea)
             if not cu:
-                raise ValueError(f'Could not find CU for function at {ea:#x}')
+                raise ValueError(f"Could not find CU for function at {ea:#x}")
             if cu.cu_id != func_cu.cu_id:
                 edge = (cu.cu_id, func_cu.cu_id)
                 if not cu_graph.has_edge(*edge):
                     cu_graph.add_edge(*edge, count=1)
                 else:
-                    cu_graph.edges[edge]['count'] += 1
+                    cu_graph.edges[edge]["count"] += 1
 
         for ea in self._afcg.successors(func_ea):
             cu = cu_map.get_cu_by_func_ea(ea)
             if not cu:
-                raise ValueError(f'Could not find CU for function at {ea:#x}')
+                raise ValueError(f"Could not find CU for function at {ea:#x}")
             if cu.cu_id != func_cu.cu_id:
                 edge = (func_cu.cu_id, cu.cu_id)
                 if not cu_graph.has_edge(*edge):
                     cu_graph.add_edge(*edge, count=1)
                 else:
-                    cu_graph.edges[edge]['count'] += 1
+                    cu_graph.edges[edge]["count"] += 1
 
-
-    def _transform_cu_graph(self, cu_map: CUMap, cu_graph: networkx.DiGraph,
-            func_ea: int, from_cu: CUInfo, to_cu: CUInfo) -> None:
+    def _transform_cu_graph(
+        self,
+        cu_map: CUMap,
+        cu_graph: networkx.DiGraph,
+        func_ea: int,
+        from_cu: CUInfo,
+        to_cu: CUInfo,
+    ) -> None:
         """
         Transform compile-unit graph by moving a function from a compile-unit to
         another. This basically involves two steps; the function is first removed
@@ -179,7 +183,6 @@ class _Base(Estimator):
         """
         self._remove_from_cu(cu_map, cu_graph, func_ea, from_cu)
         self._move_to_cu(cu_map, cu_graph, func_ea, to_cu)
-
 
     def _estimate(self) -> CUMap:
         """Common agglomerative compile-unit estimation algorithm.
@@ -222,16 +225,21 @@ class _Base(Estimator):
 
             cu = cu_map.get_cu_by_func_idx(func_idx)
             if not cu:
-                raise ValueError(f'Could not find CU for function at {func_eas[func_idx]:#x}')
+                raise ValueError(
+                    f"Could not find CU for function at {func_eas[func_idx]:#x}"
+                )
             next_func_idx = func_idx + len(cu)
 
             while next_func_idx < len(func_eas):
                 next_cu = cu_map.get_cu_by_func_idx(next_func_idx)
                 if not next_cu:
-                    raise ValueError(f'Could not find CU for function at {func_eas[next_func_idx]:#x}')
+                    raise ValueError(
+                        f"Could not find CU for function at {func_eas[next_func_idx]:#x}"
+                    )
                 cu_map.set_cu_by_func_idx(next_func_idx, cu.cu_id)
-                self._transform_cu_graph(cu_map, cu_graph,
-                    func_eas[next_func_idx], next_cu, cu)
+                self._transform_cu_graph(
+                    cu_map, cu_graph, func_eas[next_func_idx], next_cu, cu
+                )
                 num_edges = self._count_non_tree_edges(cu_graph)
 
                 if num_edges <= min_num_edges:
@@ -239,13 +247,16 @@ class _Base(Estimator):
                     change = True
                 elif num_edges > min_num_edges:
                     cu_map.set_cu_by_func_idx(next_func_idx, next_cu.cu_id)
-                    self._transform_cu_graph(cu_map, cu_graph,
-                        func_eas[next_func_idx], cu, next_cu)
+                    self._transform_cu_graph(
+                        cu_map, cu_graph, func_eas[next_func_idx], cu, next_cu
+                    )
                     func_idx = next_func_idx
 
                 cu = cu_map.get_cu_by_func_idx(func_idx)
                 if not cu:
-                    raise ValueError(f'Could not find CU for function at {func_eas[func_idx]:#x}')
+                    raise ValueError(
+                        f"Could not find CU for function at {func_eas[func_idx]:#x}"
+                    )
                 next_func_idx = func_idx + len(cu)
 
         cu_map.renumber()
@@ -262,6 +273,7 @@ class AGGLNSE(_Base):
         segment: Selector of executable segment whose functions to partition in
             compile-unit (e.g. .text).
     """
+
     def __init__(self, data: Data, segment: int) -> None:
         super(AGGLNSE, self).__init__(data, segment)
         self._afcg = util.removed_sequence_edges_view(self._afcg)
@@ -278,6 +290,7 @@ class AGGLPSE(_Base):
         segment: Selector of executable segment whose functions to partition in
             compile-unit (e.g. .text).
     """
+
     def __init__(self, data: Data, segment: int) -> None:
         super(AGGLPSE, self).__init__(data, segment)
         self._afcg = util.removed_sequence_edges_view_partial(self._afcg)

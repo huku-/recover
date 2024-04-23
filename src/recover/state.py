@@ -21,16 +21,14 @@ compile-unit and the remaining 5 another.
 
 from __future__ import annotations
 
-from typing import Iterator, List
+from collections.abc import Iterator
 
 import itertools
 
 
+__author__ = "Chariton Karamitas <huku@census-labs.com>"
 
-__author__ = 'Chariton Karamitas <huku@census-labs.com>'
-
-__all__ = ['State']
-
+__all__ = ["State"]
 
 
 class State(int):
@@ -42,14 +40,12 @@ class State(int):
     they are usually used alongside each other.
     """
 
-    _funcs: List[int]
+    _funcs: list[int]
 
-
-    def __new__(cls, state: int, funcs: List[int]) -> State:
+    def __new__(cls, state: int, funcs: list[int]) -> State:
         self = int.__new__(cls, state)
         self._funcs = funcs
         return self
-
 
     def __len__(self) -> int:
         """Returns the size of this state.
@@ -60,9 +56,8 @@ class State(int):
         """
         return len(self._funcs)
 
-
     @property
-    def funcs(self) -> List[int]:
+    def funcs(self) -> list[int]:
         """Return the list of functions in this state.
 
         Returns:
@@ -71,8 +66,7 @@ class State(int):
         """
         return list(self._funcs)
 
-
-    def to_cu_list(self) -> List[List[int]]:
+    def to_cu_list(self) -> list[list[int]]:
         """Convert this state to a list of compile-units (i.e. list of function
         address lists).
 
@@ -86,7 +80,7 @@ class State(int):
         while j >= 0:
             if self & (1 << j):
                 cu = [funcs[i]]
-                while j - 1 >= 0 and not (self & (1 << (j - 1))):
+                while j - 1 >= 0 and not self & (1 << (j - 1)):
                     cu.append(funcs[i + 1])
                     i += 1
                     j -= 1
@@ -95,7 +89,6 @@ class State(int):
             j -= 1
 
         return cu_list
-
 
     def siblings(self, num_cus: int) -> Iterator[State]:
         """Generate all sibling states of this state.
@@ -122,9 +115,8 @@ class State(int):
             state = (1 << (size - 1)) + sum(1 << i for i in bits)
             yield State(state, funcs)
 
-
     @classmethod
-    def from_cu_list(cls, cu_list: List[List[int]]) -> State:
+    def from_cu_list(cls, cu_list: list[list[int]]) -> State:
         """Convert list of compile-units (i.e. list of function address lists)
         to a state.
 

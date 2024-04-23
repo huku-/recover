@@ -31,9 +31,9 @@ import collections
 import numpy
 
 
-__author__ = 'Chariton Karamitas <huku@census-labs.com>'
+__author__ = "Chariton Karamitas <huku@census-labs.com>"
 
-__all__ = ['RunTimeStats']
+__all__ = ["RunTimeStats"]
 
 
 class RunTimeStats(object):
@@ -48,9 +48,10 @@ class RunTimeStats(object):
     .. _capeletti2017:
        https://www.politesi.polimi.it/bitstream/10589/135107/3/2017_07_Capelletti.PDF
     """
+
     def __init__(self) -> None:
         super(RunTimeStats, self).__init__()
-        self._stats = collections.defaultdict(float)
+        self._stats: dict[int, float] = collections.defaultdict(float)
 
     def get_run_time(self, num_bits: int) -> float:
         """Return or predict the run time of an optimization pass whose input
@@ -70,8 +71,11 @@ class RunTimeStats(object):
         if num_bits in self._stats:
             run_time = self._stats[num_bits]
         else:
-            run_time = numpy.interp(num_bits, list(self._stats.keys()),
-                list(self._stats.values()))
+            run_time = float(
+                numpy.interp(
+                    num_bits, list(self._stats.keys()), list(self._stats.values())
+                )
+            )
         return run_time
 
     def set_run_time(self, num_bits: int, run_time: float) -> None:
