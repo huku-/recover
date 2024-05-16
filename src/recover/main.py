@@ -8,6 +8,12 @@ import importlib.util
 import os
 import sys
 
+try:
+    import idc
+    import ida_pro
+except ImportError:
+    raise RuntimeError("Not running in IDA Pro")
+
 
 __author__ = "Chariton Karamitas <huku@census-labs.com>"
 
@@ -38,10 +44,6 @@ def _import_ida_venv() -> ModuleType:
 
 def _has_recover() -> bool:
     return importlib.util.find_spec("recover") is not None
-
-
-def _is_ida() -> bool:
-    return importlib.util.find_spec("idc") is not None
 
 
 def main() -> int:
@@ -94,5 +96,7 @@ def main() -> int:
 
 
 if __name__ == "__main__":
-    assert _is_ida(), "Not running in IDA Pro"
-    main()
+    if os.environ.get("RECOVER_EXIT") is not None:
+        ida_pro.qexit(main())
+    else:
+        main()
