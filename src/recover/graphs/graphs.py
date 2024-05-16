@@ -63,9 +63,9 @@ class EdgeClass(enum.IntEnum):
 class NodeShape(enum.Enum):
     """Graphviz node shape when visualizing."""
 
-    INVALID = "circle"
+    INVALID = "doublecircle"
     CODE = "rectangle"
-    DATA = "diamond"
+    DATA = "hexagon"
 
     @staticmethod
     def from_node_type(node_type: NodeType) -> str:
@@ -171,6 +171,7 @@ class _BaseGraph(networkx.MultiDiGraph):
         if "pygraphviz" in sys.modules:
 
             agraph = pygraphviz.AGraph(directed=True, splines="ortho")
+            agraph.node_attr.update(fontname="Courier", fontsize=10)
 
             for node, data in self.nodes(data=True):
                 agraph.add_node(
