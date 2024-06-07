@@ -16,7 +16,7 @@ _STATES = [
     0b10001000,
     0b10010000,
     0b10100000,
-    0b11000000
+    0b11000000,
 ]
 
 _TEST_CASES = [
@@ -45,12 +45,12 @@ def test_cu_list_to_state():
         assert state.cu_list_to_state(cu_list) == number
 
 
-@pytest.mark.parametrize('_', range(1000))
+@pytest.mark.parametrize("_", range(1000))
 def test_combined(_):
     func_list = list(range(100))
     split_points = sorted(random.sample(range(1, 100 - 1), 18))
 
-    cu_list = [func_list[:split_points[0]]]
+    cu_list = [func_list[: split_points[0]]]
     for i, j in itertools.pairwise(split_points):
         cu_list.append(func_list[i:j])
     cu_list.append(func_list[j:])

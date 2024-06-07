@@ -24,7 +24,7 @@ __all__ = ["FitnessFunction"]
 
 
 class FitnessFunction(abc.ABC):
-    """Represents a fitness function. Arguments to this constructor to allow for
+    """Represents a fitness function. Arguments to this constructor allow for
     arbitrary computations in :meth:`score()` based on the current state of the
     optimization process.
 
