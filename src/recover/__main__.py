@@ -42,7 +42,9 @@ def _get_segment_selector(data: Data, name: str) -> int | None:
             return seg.selector
 
 
-def main(argv: list[str]) -> int:
+def main(argv: list[str] | None = None) -> int:
+
+    argv = argv or sys.argv
 
     parser = argparse.ArgumentParser(
         prog="REcover", formatter_class=argparse.ArgumentDefaultsHelpFormatter

@@ -18,6 +18,8 @@ package_data = {
     "recover.data": ["logging.ini", "logging-debug.ini"],
 }
 
+entry_points = {"console_scripts": ["recover = recover.__main__:main"]}
+
 requirements = open("requirements.txt").read().splitlines()
 
 setuptools.setup(
@@ -30,6 +32,7 @@ setuptools.setup(
     package_dir={"": "src"},
     include_package_data=True,
     package_data=package_data,
+    entry_points=entry_points,
     install_requires=requirements,
     zip_safe=False,
 )
