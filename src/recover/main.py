@@ -9,10 +9,9 @@ import os
 import sys
 
 try:
-    import idc
     import ida_pro
-except ImportError:
-    raise RuntimeError("Not running in IDA Pro")
+except ImportError as exception:
+    raise RuntimeError("Not running in IDA Pro") from exception
 
 
 __author__ = "Chariton Karamitas <huku@census-labs.com>"
