@@ -25,9 +25,11 @@ to each compile-unit. It exposes a simple API for accessing and iterating
 from __future__ import annotations
 
 from collections.abc import Iterator
+from pathlib import Path
 
 import bisect
 import dataclasses
+import json
 import pickle
 import pprint
 
@@ -338,8 +340,8 @@ class CUMap(object):
         """Pretty-print compile-unit map."""
         pprint.pprint(self._func_to_cu, width=80, compact=True)
 
-    def save(self, path: str) -> None:
-        """Save compile-unit map in a file.
+    def save_pickle(self, path: str | Path) -> None:
+        """Save compile-unit map in a file in Pickle format.
 
         Args:
             path: Path of file to save compile-unit map to.
@@ -347,18 +349,54 @@ class CUMap(object):
         with open(path, "wb") as fp:
             pickle.dump(self, fp)
 
+    def save_json(self, path: str | Path) -> None:
+        """Save compile-unit map in a file in JSON format.
+
+        Args:
+            path: Path of file to save compile-unit map to.
+        """
+        with open(path, "w", encoding="utf-8") as fp:
+            json.dump(
+                {"funcs": self._funcs, "func_to_cu": self._func_to_cu},
+                fp=fp,
+                sort_keys=True,
+                indent=4,
+            )
+
     @classmethod
-    def load(cls, path: str) -> CUMap:
-        """Load a compile-unit map from a file.
+    def load(cls, path: str | Path) -> CUMap:
+        """Load a compile-unit map from a file. Automatically determines the file
+        format based on its extension (".pcl" vs. ".json").
 
         Args:
             path: Path of file to load the compile-unit map from.
 
         Returns:
             The loaded compile-unit map.
+
+        Raises:
+            ValueError: If the file extension of ``path`` is neither ".pcl" nor
+                ".json".
+            TypeError: If the loaded data does not look like a previously saved
+                compile-unit map.
         """
-        with open(path, "rb") as fp:
-            self = pickle.load(fp)
-            if not isinstance(self, cls):
-                raise TypeError(f"Loaded invalid class {type(self)}")
-            return self
+        if not isinstance(path, Path):
+            path = Path(path)
+
+        if path.suffix == ".pcl":
+            with open(path, "rb") as fp:
+                self = pickle.load(fp)
+                if not isinstance(self, cls):
+                    raise TypeError(f"Loaded invalid class {type(self)}")
+                return self
+
+        elif path.suffix == ".json":
+            with open(path, "r", encoding="utf-8") as fp:
+                js = json.load(fp)
+                if "funcs" not in js or "func_to_cu" not in js:
+                    raise TypeError("Loaded invalid class")
+                self = CUMap(js["funcs"])
+                self._func_to_cu = js["funcs_to_cu"]
+                return self
+
+        raise ValueError(f"Unrecognized file format {path}")

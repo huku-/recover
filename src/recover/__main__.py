@@ -97,6 +97,29 @@ def main(argv: list[str] | None = None) -> int:
         help="segment name whose functions to split in compile-units",
     )
     parser.add_argument(
+        "-k",
+        "--pickle",
+        dest="pickle_path",
+        metavar="FILE",
+        type=pathlib.Path,
+        help="path to file to store output compile-unit map in Pickle format",
+    )
+    parser.add_argument(
+        "-j",
+        "--json",
+        dest="json_path",
+        metavar="FILE",
+        type=pathlib.Path,
+        help="path to file to store output compile-unit map in JSON format",
+    )
+    parser.add_argument(
+        "-m",
+        "--time",
+        dest="write_time",
+        action="store_true",
+        help="write timing information",
+    )
+    parser.add_argument(
         "--debug", "-d", action="store_true", help="enable debugging output"
     )
     parser.add_argument(
@@ -104,12 +127,6 @@ def main(argv: list[str] | None = None) -> int:
         metavar="PATH",
         type=pathlib.Path,
         help="path to IDA Pro exported files for target executable",
-    )
-    parser.add_argument(
-        "output_file",
-        metavar="FILE",
-        type=pathlib.Path,
-        help="path to output file to store compile-units",
     )
     args = parser.parse_args(argv[1:])
 
@@ -169,10 +186,20 @@ def main(argv: list[str] | None = None) -> int:
 
     cu_map.renumber()
     _show_cus(data, cu_map)
-    cu_map.save(args.output_file)
 
-    with open(f"{args.output_file}.time", "w", encoding="utf-8") as fp:
-        fp.write(str(round(end_time - start_time + 0.5)))
+    if not args.pickle_path:
+        args.pickle_path = (
+            pathlib.Path(args.path)
+            / f"cu_map-{args.estimator}-{args.optimizer}-{args.fitness_function}.pcl"
+        )
+    cu_map.save_pickle(args.pickle_path)
+
+    if args.json_path:
+        cu_map.save_json(args.json_path)
+
+    if args.write_time:
+        with open(f"{args.pickle_path}.time", "w", encoding="utf-8") as fp:
+            fp.write(str(round(end_time - start_time + 0.5)))
 
     print(f"Recovered {len(cu_map)} compile-units")
 
