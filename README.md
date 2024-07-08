@@ -10,19 +10,19 @@ analyses.
 
 1. Create and activate a new virtual environment:
 
-    $ python -m venv /tmp/recover-venv
-    $ . /tmp/recover-venv/bin/activate
+        $ python -m venv /tmp/recover-venv
+        $ . /tmp/recover-venv/bin/activate
 
 2. Clone and install REcover and its dependencies:
 
-    $ cd /tmp
-    $ git clone --recurse-submodules https://github.com/huku-/recover.git
-    $ cd recover
-    $ pip install -r .
+        $ cd /tmp
+        $ git clone --recurse-submodules https://github.com/huku-/recover.git
+        $ cd recover
+        $ pip install -r .
 
 3. Make sure everything works as expected:
 
-    $ recover -h
+        $ recover -h
 
 
 ## Using REcover
