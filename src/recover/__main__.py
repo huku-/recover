@@ -9,10 +9,10 @@ from recover.graphs import AFCG, DFG, PDG, EdgeType, EdgeClass, NodeType
 from recover.optimizer import Optimizer
 
 import argparse
+import importlib.resources
 import logging.config
 import os
 import pathlib
-import pkg_resources
 import sys
 import time
 
@@ -131,9 +131,9 @@ def main(argv: list[str] | None = None) -> int:
     args = parser.parse_args(argv[1:])
 
     if args.debug:
-        path = pkg_resources.resource_filename("recover", "data/logging-debug.ini")
+        path = importlib.resources.files("recover.data") / "logging-debug.ini"
     else:
-        path = pkg_resources.resource_filename("recover", "data/logging.ini")
+        path = importlib.resources.files("recover.data") / "logging.ini"
 
     logging.config.fileConfig(path)
 
