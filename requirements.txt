@@ -1,4 +1,4 @@
 networkx
 numpy
-pygad==2.19.2
+pygad
 # pygraphviz

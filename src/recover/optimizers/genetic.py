@@ -24,15 +24,6 @@ __all__ = ["Genetic"]
 _MULTIPLIER = 64
 
 
-#
-# Temporary workaround until the following issue is fixed:
-#
-# https://github.com/ahmedfgad/GeneticAlgorithmPython/issues/174
-#
-if object not in pygad.GA.supported_int_types:
-    pygad.GA.supported_int_types.append(object)
-
-
 class Genetic(Optimizer):
     """Genetic compile-unit map optimizer implementation.
 
@@ -72,7 +63,7 @@ class Genetic(Optimizer):
 
                 children.append([child])
 
-            return numpy.array(children, copy=False)
+            return numpy.asarray(children)
 
         return _crossover_func
 
@@ -163,12 +154,11 @@ class Genetic(Optimizer):
             return new_state
 
         def _mutation_function(parents, _):
-            return numpy.array(
+            return numpy.asarray(
                 [
                     [_mutate(int(parents[0][0]), num_bits)],
                     [_mutate(int(parents[1][0]), num_bits)],
-                ],
-                copy=False,
+                ]
             )
 
         return _mutation_function
@@ -191,7 +181,7 @@ class Genetic(Optimizer):
         """
 
         @functools.wraps(fitness_function.score)
-        def _fitness_function(state: numpy.ndarray, _) -> float:
+        def _fitness_function(ga: pygad.GA, state: numpy.ndarray, i: int) -> float:
 
             state = int(state[0])
 
@@ -236,6 +226,7 @@ class Genetic(Optimizer):
         self._logger.info("State space %s - %s", bin(min_state), bin(max_state))
 
         ga = pygad.GA(
+            suppress_warnings=True,
             num_generations=num_bits * _MULTIPLIER,
             num_parents_mating=2,
             fitness_func=self._get_fitness_function(fitness_function, state.funcs),
