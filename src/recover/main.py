@@ -4,12 +4,16 @@
 from types import ModuleType
 from pathlib import Path
 
+import functools
 import importlib.util
 import os
+import runpy
+import site
 import sys
 
 try:
     import ida_pro
+    import idc
 except ImportError as exception:
     raise RuntimeError("Not running in IDA Pro") from exception
 
@@ -17,42 +21,44 @@ except ImportError as exception:
 __author__ = "Chariton Karamitas <huku@census-labs.com>"
 
 
+@functools.cache
 def _get_script_path() -> Path:
-    path = Path(__file__).resolve()
-    return path.parent
+    return Path(__file__).resolve(strict=True).parent
 
 
 def _get_venv_path() -> Path:
-    return _get_script_path().parent.parent / ".venv"
+    path = _get_script_path() / ".venv"
+    if path.exists() and not path.is_dir():
+        raise NotADirectoryError(errno.ENOTDIR, os.strerror(errno.ENOTDIR), str(path))
+    return path
 
 
 def _import_ida_venv() -> ModuleType:
-
-    path = _get_script_path()
-
-    spec = importlib.util.spec_from_file_location(
-        "ida_venv", path / "ida-venv" / "ida_venv.py"
-    )
-    assert spec and spec.loader, f"Module ida-venv not found under {path}"
-
-    module = importlib.util.module_from_spec(spec)
-    sys.modules["ida_venv"] = module
-    spec.loader.exec_module(module)
-    return module
+    path = _get_script_path() / "ida-venv"
+    if not path.is_dir():
+        raise NotADirectoryError(errno.ENOTDIR, os.strerror(errno.ENOTDIR), str(path))
+    site.addsitedir(path)
+    return importlib.import_module("ida_venv")
 
 
-def _has_recover() -> bool:
-    return importlib.util.find_spec("recover") is not None
+def _bool_env(name: str) -> bool:
+    value = os.getenv(name, default="false").lower()
+    if value in ("f", "false", "n", "no", "0"):
+        return False
+    elif value in ("t", "true", "y", "yes", "1"):
+        return True
+    else:
+        raise ValueError(f"{name} is not a valid boolean")
 
 
-def main() -> int:
+def main(argv: list[str]) -> int:
 
     #
     # First try to locate REcover. If not there, then it means we are either
     # outside a virtual environment, or REcover is not installed in the current
     # virtual environment.
     #
-    if not _has_recover():
+    if not importlib.util.find_spec("recover"):
 
         #
         # Get path to the currently executing script. It should have been
@@ -80,22 +86,33 @@ def main() -> int:
 
         #
         # Import ida-venv which will allow us to create a new virtual environment
-        # or reuse an existing one. The list of dependencies is set to REcover's
-        # top-level directory that contains requirements.txt, which will be used
-        # by pip in the background.
+        # or reuse an existing one.
         #
         ida_venv = _import_ida_venv()
+
+        #
+        # Install REcover in the newly created virtual environment. The list of
+        # dependencies is set to REcover's top-level directory that contains
+        # requirements.txt, which will be used by pip in the background.
+        #
         ida_venv.run_script_in_env(
             script_path=script_path / "ui.py",
             venv_path=venv_path,
             dependencies=[recover_path],
         )
 
+    #
+    # REcover is already present, which means its dependencies are too. Don't
+    # care how we got here, just fire up the REcover IDA Pro UI.
+    #
+    else:
+        runpy.run_path(script_path / "ui.py")
+
     return os.EX_OK
 
 
 if __name__ == "__main__":
-    if os.environ.get("RECOVER_EXIT") is not None:
-        ida_pro.qexit(main())
+    if _bool_env("RECOVER_EXIT"):
+        ida_pro.qexit(main(idc.ARGV))
     else:
-        main()
+        main(idc.ARGV)
