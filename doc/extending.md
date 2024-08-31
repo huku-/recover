@@ -7,16 +7,16 @@ various ways and broaden its capabilities. More specifically, users can:
 
    Exporters are responsible for exporting program data from reverse engineering
    frameworks and storing them in a format recognizable by REcover. For example,
-   see [**ida_pro.py**](src/recover/exporters/ida_pro.py). Users are free to
-   implement their own exporters (e.g. for radare, Ghidra, Binary Ninja etc.)
-   and run REcover analyses, without worrying about the internals of other
-   components. Everything will work as expected as long as:
+   see [the IDA Pro exporter](https://github.com/huku-/recover/blob/master/src/recover/exporters/ida_pro.py).
+   Users are free to implement their own exporters (e.g. for radare, Ghidra,
+   Binary Ninja etc.) and run REcover analyses, without worrying about the
+   internals of other components. Everything will work as expected as long as:
 
    * The exported graphs (AFCG, DFG, PDG) obey the definitions given in our paper
-     (also see [**graphs.py**](src/recover/graphs/graphs.py)).
+     (also see [**graphs.py**](https://github.com/huku-/recover/blob/master/src/recover/graphs/graphs.py)).
 
    * Information on the program's segments is also exported. See class `Segment`
-     in [**exporter.py**](src/recover/exporter.py).
+     in [**exporter.py**](https://github.com/huku-/recover/blob/master/src/recover/exporter.py).
 
    `Exporter.load_data()` loads the exported information for use by REcover, so
    you can always use it as a guide.
@@ -32,8 +32,8 @@ various ways and broaden its capabilities. More specifically, users can:
    be produced.
 
    Estimators are free to perform arbitrary computations, as long as they produce
-   a valid compile-unit map a.k.a. [`CUMap`](src/recover/cu_map.py). Estimators
-   should inherit from and implement the [`Estimator`](src/recover/estimator.py)
+   a valid compile-unit map a.k.a. [`CUMap`](https://github.com/huku-/recover/blob/master/src/recover/cu_map.py).
+   Estimators should inherit from and implement the [`Estimator`](https://github.com/huku-/recover/blob/master/src/recover/estimator.py)
    API.
 
 3. Develop new *fitness functions* &ndash; EASY
