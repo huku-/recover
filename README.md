@@ -1,9 +1,8 @@
 # REcover
 
 REcover is a tool for approximately recovering the compile-unit layout from
-stripped ELF binary executables. REcover consists of an IDAPython plug-in,
-used for exporting information, and a command line tool, for running various
-analyses.
+stripped binary executables. REcover consists of an IDAPython plug-in, used for
+exporting information, and a command line tool, for running various analyses.
 
 
 ## Installation
@@ -73,6 +72,14 @@ line as shown below:
 
 There is a variety of estimators (`--estimator`), fitness functions (`--fitness-function`)
 and optimizers (`--optimizer`) to choose from. See `recover -h` for more information.
+
+
+## Documentation
+
+* See [Extending REcover](doc/extending.md) for more information on how to extend
+  REcover.
+
+* Complete API reference is on the way!
 
 
 ## References
