@@ -4,6 +4,7 @@
 from types import ModuleType
 from pathlib import Path
 
+import errno
 import functools
 import importlib.util
 import os
@@ -37,7 +38,7 @@ def _import_ida_venv() -> ModuleType:
     path = _get_script_path() / "ida-venv"
     if not path.is_dir():
         raise NotADirectoryError(errno.ENOTDIR, os.strerror(errno.ENOTDIR), str(path))
-    site.addsitedir(path)
+    site.addsitedir(str(path))
     return importlib.import_module("ida_venv")
 
 
@@ -54,23 +55,23 @@ def _bool_env(name: str) -> bool:
 def main(argv: list[str]) -> int:
 
     #
-    # First try to locate REcover. If not there, then it means we are either
-    # outside a virtual environment, or REcover is not installed in the current
-    # virtual environment.
+    # Get path to the currently executing script. It should have been executed
+    # from within the source distribution of REcover (as opposed to the user
+    # manually navigating in site-packages).
+    #
+    script_path = _get_script_path()
+    assert script_path.parts[-3:] == (
+        "recover",
+        "src",
+        "recover",
+    ), "REcover not executed from within the source distribution"
+
+    #
+    # Try to locate REcover. If not there, then it means we are either outside a
+    # virtual environment, or REcover is not installed in the current virtual
+    # environment.
     #
     if not importlib.util.find_spec("recover"):
-
-        #
-        # Get path to the currently executing script. It should have been
-        # executed from within the source distribution of REcover (as opposed to
-        # the user manually navigating in site-packages).
-        #
-        script_path = _get_script_path()
-        assert script_path.parts[-3:] == (
-            "recover",
-            "src",
-            "recover",
-        ), "REcover not executed from within the source distribution"
 
         #
         # Get path to REcover's source distribution.
@@ -106,7 +107,7 @@ def main(argv: list[str]) -> int:
     # care how we got here, just fire up the REcover IDA Pro UI.
     #
     else:
-        runpy.run_path(script_path / "ui.py")
+        runpy.run_path(str(script_path / "ui.py"))
 
     return os.EX_OK
 

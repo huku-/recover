@@ -12,3 +12,6 @@ clean:
 
 uninstall:
 	pip uninstall -q -y recover
+
+mypy:
+	mypy --config-file mypy.ini src/recover/

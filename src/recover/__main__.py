@@ -135,7 +135,7 @@ def main(argv: list[str] | None = None) -> int:
     else:
         path = importlib.resources.files("recover.data") / "logging.ini"
 
-    logging.config.fileConfig(path)
+    logging.config.fileConfig(str(path))
 
     data = recover.exporter.load_data(args.path)
 
