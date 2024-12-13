@@ -15,3 +15,6 @@ uninstall:
 
 mypy:
 	mypy --config-file mypy.ini src/recover/
+
+pylint:
+	pylint --rcfile pylintrc src/recover/

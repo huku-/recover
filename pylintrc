@@ -30,6 +30,9 @@ disable=
     useless-object-inheritance,
     wrong-import-order
 
+[DESIGN]
+max-positional-arguments=10
+
 [MISCELLANEOUS]
 notes=TODO,XXX
 
