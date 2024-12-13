@@ -107,7 +107,7 @@ def main(argv: list[str]) -> int:
     # care how we got here, just fire up the REcover IDA Pro UI.
     #
     else:
-        runpy.run_path(str(script_path / "ui.py"))
+        runpy.run_path(str(script_path / "ui.py"), run_name="__main__")
 
     return os.EX_OK
 
