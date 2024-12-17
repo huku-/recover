@@ -1,5 +1,5 @@
-all:
-	python setup.py install
+install:
+	pip install .
 
 clean:
 	rm -rf build dist
