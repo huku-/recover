@@ -1,12 +1,5 @@
 # -*- coding: utf-8 -*-
-# pylint: disable=invalid-name,unused-import
 """REcover console entry point."""
-
-from recover.cu_map import CUMap
-from recover.exporter import Data, Segment, SegmentClass
-from recover.fitness_function import FitnessFunction
-from recover.graphs import AFCG, DFG, PDG, EdgeType, EdgeClass, NodeType
-from recover.optimizer import Optimizer
 
 import argparse
 import importlib.resources
@@ -14,32 +7,11 @@ import logging.config
 import os
 import pathlib
 import sys
-import time
 
-import recover.cu_map
-import recover.estimators
-import recover.exporter
-import recover.fitness_functions
-import recover.optimizers
-import recover.util
+import recover
 
 
 __author__ = "Chariton Karamitas <huku@census-labs.com>"
-
-
-def _show_cus(data: Data, cu_map: CUMap) -> None:
-    for cu in cu_map.get_cus():
-        print(f"CU #{cu.cu_id}")
-        for ea in cu.get_func_eas():
-            name = data.afcg.nodes[ea].get("name")
-            print(f"\t{name:48s} [{ea:#x}]")
-    cu_map.show()
-
-
-def _get_segment_selector(data: Data, name: str) -> int | None:
-    for seg in data.segs:
-        if name in seg.name:
-            return seg.selector
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -65,20 +37,20 @@ def main(argv: list[str] | None = None) -> int:
         help="load initial compile-unit estimation from this file",
     )
     parser.add_argument(
-        "--fitness-function",
-        "-f",
-        choices=["none", "modularity", "cc"],
-        type=str,
-        default="none",
-        help="fitness function to use for compile-unit layout optimization",
-    )
-    parser.add_argument(
         "--optimizer",
         "-o",
-        choices=["brute", "genetic", "mixed"],
+        choices=["none", "brute", "genetic", "mixed"],
         type=str,
         default="brute",
         help="algorithm to use for compile-unit layout optimization",
+    )
+    parser.add_argument(
+        "--fitness-function",
+        "-f",
+        choices=["modularity", "cc"],
+        type=str,
+        default="modularity",
+        help="fitness function to use for compile-unit layout optimization",
     )
     parser.add_argument(
         "--filter-method",
@@ -137,71 +109,21 @@ def main(argv: list[str] | None = None) -> int:
 
     logging.config.fileConfig(str(path))
 
-    data = recover.exporter.load_data(args.path)
-
-    sel = _get_segment_selector(data, args.segment)
-    if not sel:
-        raise ValueError(f"Could not locate segment {args.segment}")
-
-    start_time = int(time.time())
-
     if args.filter_method != "none":
         raise NotImplementedError("Graph filtering is WIP")
 
-    if args.load_estimation:
-        logging.info("Loading initial estimation from %s", args.load_estimation)
-        cu_map = recover.cu_map.CUMap.load(args.load_estimation)
-    elif args.estimator == "apsnse":
-        logging.info("Using articulation-points (apsnse) for initial CU estimation")
-        cu_map = recover.estimators.APSNSE(data, sel).estimate()
-    elif args.estimator == "apspse":
-        logging.info("Using articulation-points (apspse) for initial CU estimation")
-        cu_map = recover.estimators.APSPSE(data, sel).estimate()
-    elif args.estimator == "agglnse":
-        logging.info("Using agglomeration (agglnse) for initial CU estimation")
-        cu_map = recover.estimators.AGGLNSE(data, sel).estimate()
-    elif args.estimator == "agglpse":
-        logging.info("Using agglomeration (agglpse) for initial CU estimation")
-        cu_map = recover.estimators.AGGLPSE(data, sel).estimate()
-
-    if args.fitness_function != "none":
-        fitness_function: type[FitnessFunction]
-        if args.fitness_function == "modularity":
-            logging.info("Using modularity fitness function")
-            fitness_function = recover.fitness_functions.Modularity
-        elif args.fitness_function == "cc":
-            logging.info("Using clustering-coefficient fitness function")
-            fitness_function = recover.fitness_functions.ClusteringCoefficient
-
-        optimizer: Optimizer
-        if args.optimizer == "brute":
-            logging.info("Using brute-force optimizer")
-            optimizer = recover.optimizers.BruteForce(data, cu_map, fitness_function)
-        elif args.optimizer == "genetic":
-            logging.info("Using genetic optimizer")
-            optimizer = recover.optimizers.Genetic(data, cu_map, fitness_function)
-        optimizer.optimize()
-
-    end_time = int(time.time())
-
-    cu_map.renumber()
-    _show_cus(data, cu_map)
-
-    if not args.pickle_path:
-        args.pickle_path = (
-            pathlib.Path(args.path)
-            / f"cu_map-{args.estimator}-{args.optimizer}-{args.fitness_function}.pcl"
-        )
-    cu_map.save_pickle(args.pickle_path)
-
-    if args.json_path:
-        cu_map.save_json(args.json_path)
-
-    if args.write_time:
-        with open(f"{args.pickle_path}.time", "w", encoding="utf-8") as fp:
-            fp.write(str(round(end_time - start_time + 0.5)))
-
-    print(f"Recovered {len(cu_map)} compile-units")
+    recover.analyze(
+        args.path,
+        estimator=args.estimator,
+        load_estimation=args.load_estimation,
+        fitness_function=args.fitness_function,
+        optimizer=args.optimizer,
+        segment=args.segment,
+        pickle_path=args.pickle_path,
+        json_path=args.json_path,
+        write_time=args.write_time,
+        debug=args.debug,
+    )
 
     return os.EX_OK
 
