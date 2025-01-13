@@ -20,7 +20,7 @@ __author__ = "Chariton Karamitas <huku@census-labs.com>"
 def main() -> int:
 
     path = importlib.resources.files("recover.data") / "logging.ini"
-    logging.config.fileConfig(path)
+    logging.config.fileConfig(str(path))
 
     path = pathlib.Path(idc.get_idb_path())
     logging.info("IDB at %s", path)
