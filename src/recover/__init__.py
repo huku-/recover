@@ -125,8 +125,11 @@ def analyze(
         )
     cu_map.save_pickle(pickle_path)
 
-    if json_path:
-        cu_map.save_json(json_path)
+    if not json_path:
+        json_path = (
+            Path(path) / f"cu_map-{estimator}-{optimizer}-{fitness_function}.json"
+        )
+    cu_map.save_json(json_path)
 
     if write_time:
         with open(f"{pickle_path}.time", "w", encoding="utf-8") as fp:
