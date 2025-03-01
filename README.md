@@ -23,6 +23,9 @@ exporting information, and a command line tool, for running various analyses.
 
         $ recover -h
 
+4. Additionally, you can install the *experimental* IDA Pro plug-in. Find source
+   code and instructions [here](plugins/ida_pro/).
+
 
 ## Using REcover
 
