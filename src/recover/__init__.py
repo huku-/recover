@@ -92,9 +92,6 @@ def analyze(
         if fitness_function == "modularity":
             logging.info("Using modularity fitness function")
             fft = recover.fitness_functions.Modularity
-        elif fitness_function == "cc":
-            logging.info("Using clustering-coefficient fitness function")
-            fft = recover.fitness_functions.ClusteringCoefficient
         else:
             raise ValueError(f"Invalid fitness function {fitness_function}")
 

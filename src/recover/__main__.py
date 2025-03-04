@@ -47,7 +47,7 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument(
         "--fitness-function",
         "-f",
-        choices=["modularity", "cc"],
+        choices=["modularity"],
         type=str,
         default="modularity",
         help="fitness function to use for compile-unit layout optimization",
