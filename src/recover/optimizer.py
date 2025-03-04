@@ -168,8 +168,9 @@ class Optimizer(abc.ABC):
             compile-unit map.
         """
         cu_map = self._cu_map
+        cu_map_ids = [cu_map.get_id()]
 
-        num_rounds = num_changes = 0
+        num_rounds = prev_num_changes = num_changes = 0
 
         modified_cus = {cu.cu_id for cu in cu_map.get_cus()}
 
@@ -206,5 +207,13 @@ class Optimizer(abc.ABC):
                         modified_cus.discard(cu_id)
                 else:
                     modified_cus.discard(cu_id)
+
+            cu_map_id = cu_map.get_id()
+            if num_changes > prev_num_changes and cu_map_id in cu_map_ids:
+                self._logger.warning("Optimization completed with recursion")
+                modified_cus.clear()
+            cu_map_ids.append(cu_map_id)
+
+            prev_num_changes = num_changes
 
         return num_changes

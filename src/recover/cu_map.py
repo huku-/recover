@@ -29,6 +29,7 @@ from pathlib import Path
 
 import bisect
 import dataclasses
+import hashlib
 import json
 import pickle
 import pprint
@@ -109,6 +110,19 @@ class CUMap(object):
             accidentally modify the list used internally.
         """
         return list(self._funcs)
+
+    def get_id(self) -> str:
+        """Generate a unique string identifier for the current compile-unit map.
+
+        Returns:
+            Unique string identifier.
+        """
+        data = ""
+        cu = self.get_first_cu()
+        while cu:
+            data += f"{len(cu)}|"
+            cu = self.get_next_cu(cu)
+        return hashlib.sha256(data.encode()).hexdigest()
 
     def get_invalid_cus(self) -> dict[int, int]:
         """Get list of invalid compile-units.
