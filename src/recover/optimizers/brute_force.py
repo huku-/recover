@@ -39,7 +39,7 @@ class BruteForce(Optimizer):
             [cu.get_func_eas(), next_cu.get_func_eas()]
         )
 
-        fitness_function = self._fitness_function(self._data, self._cu_map)
+        fitness_function = self._fitness_function(self._data, self._cu_map, state)
 
         if cu.cu_id not in cu_scores:
             score = max_score = cu_scores.setdefault(

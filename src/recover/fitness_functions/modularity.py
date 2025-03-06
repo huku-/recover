@@ -7,9 +7,11 @@
 """
 
 from recover.cu_map import CUMap
-from recover.fitness_function import FitnessFunction
+from recover.fitness_function import DataFitnessFunction
 from recover.state import State
 from recover.util import Data
+
+import itertools
 
 from recover import util
 
@@ -19,7 +21,7 @@ __author__ = "Chariton Karamitas <huku@census-labs.com>"
 __all__ = ["Modularity"]
 
 
-class Modularity(FitnessFunction):
+class Modularity(DataFitnessFunction):
     """Newman modularity fitness function.
 
     The state number and the corresponding function list are converted to a
@@ -29,13 +31,15 @@ class Modularity(FitnessFunction):
     Args:
         data: Exported program data.
         cu_map: The program's compile-unit map.
+        init_state: Initial state before any further optimization is performed
+            (useful in cases where preprocessing might be required).
     """
 
-    def __init__(self, data: Data, cu_map: CUMap) -> None:
-        super(Modularity, self).__init__(data, cu_map)
-        self._in_degrees = dict(data.pdg.in_degree())
-        self._out_degrees = dict(data.pdg.out_degree())
-        self._m = sum(self._out_degrees.values())
+    def __init__(self, data: Data, cu_map: CUMap, init_state: State) -> None:
+        super(Modularity, self).__init__(data, cu_map, init_state)
+        self._in_degrees = dict(data.pdg.in_degree(self._nodes))
+        self._out_degrees = dict(data.pdg.out_degree(self._nodes))
+        self._m = data.pdg.size()
 
     def _compute_modularity(self, community: set[int]) -> float:
         link_sum = sum(1 for _, u in self._data.pdg.edges(community) if u in community)
@@ -45,7 +49,11 @@ class Modularity(FitnessFunction):
 
     def score(self, state: State) -> float:
         cus = state.to_cu_list()
-        modularity = 0.0
-        for community in util.to_pdg_partition(self._data, cus):
+        data_refs = self._data_refs
+        modularity = 0
+        for cu in cus:
+            community = cu + list(
+                itertools.chain.from_iterable(data_refs[func] for func in cu)
+            )
             modularity += self._compute_modularity(community)
         return modularity

@@ -202,7 +202,7 @@ class Genetic(Optimizer):
 
         state = State.from_cu_list([cu.get_func_eas(), next_cu.get_func_eas()])
 
-        fitness_function = self._fitness_function(self._data, self._cu_map)
+        fitness_function = self._fitness_function(self._data, self._cu_map, state)
 
         if cu.cu_id not in cu_scores:
             score = cu_scores.setdefault(cu.cu_id, fitness_function.score(state))

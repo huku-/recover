@@ -19,7 +19,6 @@ __author__ = "Chariton Karamitas <huku@census-labs.com>"
 
 __all__ = [
     "get_func_data_refs",
-    "to_pdg_partition",
     "removed_sequence_edges_view",
     "removed_sequence_edges_view_partial",
     "segment_view",
@@ -36,6 +35,7 @@ def get_func_data_refs(
     debug: bool = False,
     merge: bool = False,
     skip_sels: list[int] | None = None,
+    flatten: bool = False,
 ) -> DataRefs:
     """Get data references of function(s).
 
@@ -88,6 +88,13 @@ def get_func_data_refs(
             ):
                 _get_data_refs(succ_ea)
 
+    def _flatten_data_refs(data_refs: DataRefs) -> list[int]:
+        flat_data_refs = []
+        for sel in data_refs:
+            for sel_data_refs in data_refs[sel]:
+                flat_data_refs.append(sel_data_refs[0])
+        return flat_data_refs
+
     for _, succ_ea, size in dfg.edges(nbunch=func_ea, data="size"):
         sel = dfg.nodes[succ_ea]["segment"]
         _add_data_ref(succ_ea, size, sel)
@@ -128,50 +135,8 @@ def get_func_data_refs(
                 d[sel].append((f"{ea:#x}", size, freq))
         print(json.dumps({f"{k}": d}, indent=4))
 
-    return data_refs
+    return _flatten_data_refs(data_refs) if flatten else data_refs
 
-
-def to_pdg_partition(
-    data: Data, partition: list[list[int]], disjoint: bool = True
-) -> list[set[int]]:
-    """Take a partition of program functions, provided as a list-of-lists of
-    function addresses, and convert it to a PDG partition, a list-of-sets of
-    function and data addresses (addresses of data elements accessed by those
-    functions). Furthermore, if ``disjoint`` is true, PDG partitions will be
-    disjoint, i.e. no data element will appear in more than one partition.
-
-    .. warning::
-       Notice that ``partition`` should also be non-overlapping, but for
-       performance purposes, we don't explicitly check it here.
-
-    Args:
-        data: Exported program data.
-        partition: Partition of program functions.
-        disjoint: Make PDG partitions disjoint.
-
-    Returns:
-        PDG partition corresponding to ``partition``.
-    """
-
-    def _flatten_data_refs(data_refs: DataRefs) -> list[int]:
-        flat_data_refs = []
-        for sel in data_refs:
-            for sel_data_refs in data_refs[sel]:
-                flat_data_refs.append(sel_data_refs[0])
-        return flat_data_refs
-
-    pdg_partition: list[set[int]] = []
-
-    for func_eas in partition:
-        data_refs = _flatten_data_refs(get_func_data_refs(data.dfg, func_eas))
-        if disjoint:
-            pdg_partition.append(
-                set(func_eas + data_refs) - set().union(*pdg_partition)
-            )
-        else:
-            pdg_partition.append(set(func_eas + data_refs))
-
-    return pdg_partition
 
 
 def removed_sequence_edges_view(graph: Graph) -> Graph:
@@ -208,8 +173,8 @@ def removed_sequence_edges_view_partial(graph: Graph) -> Graph:
     def _filter_edge(tail: int, head: int, key: int) -> bool:
         return (
             graph.edges[tail, head, key]["edge_class"] != EdgeClass.SEQUENCE
-            or graph.out_degree(tail) == 1
-            or graph.in_degree(head) == 1
+            or graph.degree(tail) == 1
+            or graph.degree(head) == 1
         )
 
     return type(graph)(

@@ -17,10 +17,12 @@ from recover.state import State
 import abc
 import logging
 
+from recover import util
+
 
 __author__ = "Chariton Karamitas <huku@census-labs.com>"
 
-__all__ = ["FitnessFunction"]
+__all__ = ["FitnessFunction", "DataFitnessFunction"]
 
 
 class FitnessFunction(abc.ABC):
@@ -31,13 +33,16 @@ class FitnessFunction(abc.ABC):
     Args:
         data: Exported program data.
         cu_map: The program's compile-unit map.
+        init_state: Initial state before any further optimization is performed
+            (useful in cases where preprocessing might be required).
     """
 
-    def __init__(self, data: Data, cu_map: CUMap) -> None:
+    def __init__(self, data: Data, cu_map: CUMap, init_state: State) -> None:
         super(FitnessFunction, self).__init__()
         self._logger = logging.getLogger(self.__class__.__name__)
         self._data = data
         self._cu_map = cu_map
+        self._init_state = init_state
 
     @abc.abstractmethod
     def score(self, state: State) -> float:
@@ -50,3 +55,29 @@ class FitnessFunction(abc.ABC):
             The computed fitness score.
         """
         raise NotImplementedError
+
+
+class DataFitnessFunction(FitnessFunction):
+    """Base class for implementing fitness functions that take into account data
+    references.
+
+    Args:
+        data: Exported program data.
+        cu_map: The program's compile-unit map.
+        init_state: Initial state before any further optimization is performed
+            (useful in cases where preprocessing might be required).
+    """
+
+    def __init__(self, data: Data, cu_map: CUMap, init_state: State) -> None:
+        super(DataFitnessFunction, self).__init__(data, cu_map, init_state)
+        funcs = init_state.funcs
+        nodes = set(funcs)
+        data_refs = {}
+        for func in funcs:
+            func_data_refs = (
+                set(util.get_func_data_refs(data.dfg, func, flatten=True)) - nodes
+            )
+            nodes |= func_data_refs
+            data_refs[func] = func_data_refs
+        self._nodes = nodes
+        self._data_refs = data_refs
