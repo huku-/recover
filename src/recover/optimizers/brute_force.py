@@ -26,11 +26,8 @@ class BruteForce(Optimizer):
         self, data: Data, cu_map: CUMap, fitness_function: type[FitnessFunction]
     ) -> None:
         super(BruteForce, self).__init__(data, cu_map, fitness_function)
-        self._cu_scores: dict[int, float] = {}
 
     def _optimize(self, cu: CUInfo, next_cu: CUInfo) -> tuple[int, int]:
-
-        cu_scores = self._cu_scores
 
         num_changes = 0
         new_cu_id = -1
@@ -40,13 +37,7 @@ class BruteForce(Optimizer):
         )
 
         fitness_function = self._fitness_function(self._data, self._cu_map, state)
-
-        if cu.cu_id not in cu_scores:
-            score = max_score = cu_scores.setdefault(
-                cu.cu_id, fitness_function.score(state)
-            )
-        else:
-            score = max_score = cu_scores[cu.cu_id]
+        score = max_score = fitness_function.score(state)
 
         num_bits = len(cu) + len(next_cu)
         max_bits_set = min(num_bits, 3)
@@ -76,7 +67,6 @@ class BruteForce(Optimizer):
                 bin(max_state),
                 max_score,
             )
-            cu_scores[cu.cu_id] = max_score
             num_changes, new_cu_id = self._update_cu_map(cu, next_cu, max_state)
 
         return num_changes, new_cu_id
