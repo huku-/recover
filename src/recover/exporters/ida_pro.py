@@ -3,12 +3,15 @@
 
 from collections.abc import Iterator
 
-from ida_funcs import func_t
-
-import logging
-
 from recover.exporter import Exporter, Segment, SegmentClass
 from recover.graphs import PDG, EdgeType, EdgeClass, NodeType
+
+from ida_funcs import func_t
+
+import itertools
+import logging
+
+import networkx
 
 import ida_bytes
 import ida_funcs
@@ -243,6 +246,51 @@ class _PdgBuilder(object):
             prev_ea = ea
             prev_sel = sel
 
+    def _add_density_edges(self, depth_limit: int = 1, window: int = 1) -> None:
+
+        def _splice(node_idx: list[int], window: int) -> Iterator[list[int]]:
+            while node_idx:
+                i = node_idx.pop(0)
+                seq = [i]
+                while node_idx and abs(node_idx[0] - i) <= window:
+                    i = node_idx.pop(0)
+                    seq.append(i)
+                yield seq
+
+        nodes = list(sorted(self._pdg))
+
+        density_seqs = []
+        for ea in self._pdg:
+            successors = [
+                nodes.index(node_ea)
+                for node_ea in networkx.dfs_preorder_nodes(
+                    self._pdg, source=ea, depth_limit=depth_limit, sort_neighbors=sorted
+                )
+                if node_ea != ea
+            ]
+            density_seqs += list(_splice(successors, window))
+
+        num_edges = self._pdg.number_of_edges()
+
+        for seq in density_seqs:
+            for i, j in itertools.pairwise(seq):
+                self._add_program_edge(
+                    nodes[i],
+                    nodes[j],
+                    edge_class=EdgeClass.DENSITY,
+                    edge_type=EdgeType.CODE2CODE,
+                )
+                self._add_program_edge(
+                    nodes[j],
+                    nodes[i],
+                    edge_class=EdgeClass.DENSITY,
+                    edge_type=EdgeType.CODE2CODE,
+                )
+
+        self._logger.info(
+            "Added %d density edges", self._pdg.number_of_edges() - num_edges
+        )
+
     def _get_func_xrefs_to(self, ea: int) -> Iterator[func_t]:
 
         ref = ida_xref.get_first_fcref_to(ea)
@@ -282,6 +330,7 @@ class _PdgBuilder(object):
     def build(self) -> PDG:
         self._logger.info("Adding FCG edges")
         self._add_fcg_edges()
+        # self._add_density_edges()
         self._logger.info("Adding sequence edges")
         self._add_sequence_edges()
         self._logger.info("Adding data edges")

@@ -57,6 +57,7 @@ class EdgeClass(enum.IntEnum):
     CONTROL_RELATION = 1
     DATA_RELATION = 2
     SEQUENCE = 3
+    DENSITY = 4
 
 
 @enum.unique
