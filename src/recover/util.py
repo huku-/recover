@@ -36,7 +36,7 @@ def get_func_data_refs(
     merge: bool = False,
     skip_sels: list[int] | None = None,
     flatten: bool = False,
-) -> DataRefs:
+) -> DataRefs | list[int]:
     """Get data references of function(s).
 
     Args:
@@ -48,6 +48,7 @@ def get_func_data_refs(
         merge: Merge overlapping data references, if any.
         skip_sels: List of selectors of segments whose data references not to
             include in the returned data references.
+        flatten: Return data references as a plain list of data addresses.
 
     Returns:
         Data references of function(s).
@@ -136,7 +137,6 @@ def get_func_data_refs(
         print(json.dumps({f"{k}": d}, indent=4))
 
     return _flatten_data_refs(data_refs) if flatten else data_refs
-
 
 
 def removed_sequence_edges_view(graph: Graph) -> Graph:

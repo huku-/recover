@@ -188,7 +188,9 @@ class Optimizer(abc.ABC):
                     num_cus,
                 )
 
-            for cu_id in set(modified_cus):
+            for cu_id in sorted(
+                modified_cus, key=lambda x: cu_map.get_cu_by_cu_id(x).bounds[0]
+            ):
                 cu = cu_map.get_cu_by_cu_id(cu_id)
                 if cu:
                     next_cu = cu_map.get_next_cu(cu)
@@ -211,7 +213,7 @@ class Optimizer(abc.ABC):
             cu_map_id = cu_map.get_id()
             if num_changes > prev_num_changes and cu_map_id in cu_map_ids:
                 self._logger.warning("Optimization completed with recursion")
-                modified_cus.clear()
+                break
             cu_map_ids.append(cu_map_id)
 
             prev_num_changes = num_changes
