@@ -11,7 +11,7 @@ from recover.fitness_function import DataFitnessFunction
 from recover.state import State
 from recover.util import Data
 
-import itertools
+import functools
 
 from recover import util
 
@@ -52,8 +52,8 @@ class Modularity(DataFitnessFunction):
         data_refs = self._data_refs
         modularity = 0
         for cu in cus:
-            community = cu + list(
-                itertools.chain.from_iterable(data_refs[func] for func in cu)
+            community = set(cu) | functools.reduce(
+                set.union, (data_refs[func] for func in cu)
             )
             modularity += self._compute_modularity(community)
         return modularity
