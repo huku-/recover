@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+# pylint: disable=invalid-name,unused-argument
 """REcover IDA Pro plug-in."""
 
 __author__ = "Chariton Karamitas <huku@census-labs.com>"
@@ -35,8 +36,8 @@ except ImportError as exception:
 
 
 ESTIMATORS = ["agglnse", "agglpse", "apsnse", "apspse", "file"]
-OPTIMIZERS = ["none", "brute", "genetic", "mixed"]
-FITNESS_FUNCTIONS = ["modularity", "cc"]
+OPTIMIZERS = ["none", "brute_fast", "brute", "genetic"]
+FITNESS_FUNCTIONS = ["modularity"]
 
 WIDTH = 48
 HEIGHT = 32
@@ -78,7 +79,7 @@ def analyze(
         load_estimation: Optional path to load an initial compile-unit estimation
             from.
         optimizer: Algorithm to use for compile-unit layout optimization.
-            Defaults to "brute" if not specified.
+            Defaults to "brute_fast" if not specified.
         fitness_function: Fitness function to use for compile-unit layout
             optimization. Defaults to "modularity" if not specified.
         segment: Segment name whose functions to split in compile-units. Defaults
@@ -110,7 +111,7 @@ def analyze(
             path,
             estimator=estimator or "apsnse",
             load_estimation=load_estimation,
-            optimizer=optimizer or "brute",
+            optimizer=optimizer or "brute_fast",
             fitness_function=fitness_function or "modularity",
             segment=segment or ".text",
             pickle_path=path / "cu_map.pcl",
@@ -325,12 +326,12 @@ REcover analyzer
 <Input file\:         :{input_file}>
 
 <##Optimization method##None:{none}>
+<Fast brute force:{brute_fast}>
 <Brute force:{brute}>
 <Genetic:{genetic}>
 <Mixed:{mixed}>{optimizer}>
 
-<##Fitness function##Modularity:{modularity}>
-<Clustering coefficient:{cc}>{fitness_function}>
+<##Fitness function##Modularity:{modularity}>{fitness_function}>
 
 <Segment name\:       :{segment}>
 
@@ -354,7 +355,7 @@ REcover analyzer
         self.Compile()
         self.venv_path.value = ""
         self.apsnse.selected = True
-        self.brute.selected = True
+        self.brute_fast.selected = True
         self.modularity.selected = True
         self.input_file.value = ""
         self.segment.value = ".text"
