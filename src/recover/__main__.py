@@ -39,9 +39,9 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument(
         "--optimizer",
         "-o",
-        choices=["none", "brute", "genetic", "mixed"],
+        choices=["none", "brute_fast", "brute", "genetic"],
         type=str,
-        default="brute",
+        default="brute_fast",
         help="algorithm to use for compile-unit layout optimization",
     )
     parser.add_argument(

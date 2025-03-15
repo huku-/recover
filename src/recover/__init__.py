@@ -45,7 +45,7 @@ def analyze(
     estimator: str = "apspse",
     load_estimation: str | Path | None = None,
     fitness_function: str = "modularity",
-    optimizer: str = "brute",
+    optimizer: str = "brute_fast",
     segment: str = ".text",
     pickle_path: str | Path | None = None,
     json_path: str | Path | None = None,
@@ -72,6 +72,7 @@ def analyze(
     if load_estimation:
         logging.info("Loading initial estimation from %s", load_estimation)
         cu_map = recover.cu_map.CUMap.load(load_estimation)
+        estimator = "load"
     elif estimator == "apsnse":
         logging.info("Using articulation-points (apsnse) for initial CU estimation")
         cu_map = recover.estimators.APSNSE(data, sel).estimate()
@@ -95,7 +96,10 @@ def analyze(
         else:
             raise ValueError(f"Invalid fitness function {fitness_function}")
 
-        if optimizer == "brute":
+        if optimizer == "brute_fast":
+            logging.info("Using fast brute-force optimizer")
+            recover.optimizers.BruteForceFast(data, cu_map, fft).optimize()
+        elif optimizer == "brute":
             logging.info("Using brute-force optimizer")
             recover.optimizers.BruteForce(data, cu_map, fft).optimize()
         elif optimizer == "genetic":
@@ -113,7 +117,7 @@ def analyze(
             print(f"CU #{cu.cu_id}")
             for ea in cu.get_func_eas():
                 name = data.afcg.nodes[ea].get("name")
-                print(f"\t{name:48s} [{ea:#x}]")
+                print(f"\t[{ea:#x}] {name}")
         cu_map.show()
 
     if not pickle_path:
@@ -129,7 +133,10 @@ def analyze(
     cu_map.save_json(json_path)
 
     if write_time:
-        with open(f"{pickle_path}.time", "w", encoding="utf-8") as fp:
+        time_path = (
+            Path(path) / f"cu_map-{estimator}-{optimizer}-{fitness_function}.time"
+        )
+        with open(time_path, "w", encoding="utf-8") as fp:
             fp.write(f"{end_time - start_time}\n")
 
     print(f"Recovered {len(cu_map)} compile-units")

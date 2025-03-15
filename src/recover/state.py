@@ -115,6 +115,21 @@ class State(int):
             state = (1 << (size - 1)) + sum(1 << i for i in bits)
             yield State(state, funcs)
 
+    def siblings_fast(self) -> Iterator[State]:
+        """Generate all sibling states for fast state exploration.
+
+        During fast state exploration, only sibling states with one additional
+        bit are visited.
+
+        Yields:
+            Sibling states for fast state exploration.
+        """
+        funcs = self._funcs
+        size = len(funcs)
+        for i in range(size - 1):
+            if (self & (1 << i)) == 0:
+                yield State(self + (1 << i), funcs)
+
     @classmethod
     def from_cu_list(cls, cu_list: list[list[int]]) -> State:
         """Convert list of compile-units (i.e. list of function address lists)

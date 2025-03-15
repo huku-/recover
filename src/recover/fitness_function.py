@@ -79,5 +79,5 @@ class DataFitnessFunction(FitnessFunction):
             )
             nodes |= func_data_refs
             data_refs[func] = func_data_refs
-        self._nodes = nodes
+        self._nodes = sorted(nodes)
         self._data_refs = data_refs
