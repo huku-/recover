@@ -326,10 +326,9 @@ REcover analyzer
 <Input file\:         :{input_file}>
 
 <##Optimization method##None:{none}>
-<Fast brute force:{brute_fast}>
-<Brute force:{brute}>
-<Genetic:{genetic}>
-<Mixed:{mixed}>{optimizer}>
+<Fast brute-force:{brute_fast}>
+<Brute-force:{brute}>
+<Genetic:{genetic}>{optimizer}>
 
 <##Fitness function##Modularity:{modularity}>{fitness_function}>
 
