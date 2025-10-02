@@ -24,7 +24,7 @@ exporting information, and a command line tool, for running various analyses.
         $ recover -h
 
 4. Additionally, you can install the *experimental* IDA Pro plug-in. Find source
-   code and instructions [here](plugins/ida_pro/).
+   code [here](plugins/ida_pro/) and instructions [here](doc/ida_pro_plugin.md).
 
 
 ## Using REcover
@@ -85,6 +85,15 @@ and optimizers (`--optimizer`) to choose from. See `recover -h` for more informa
 * Complete API reference is on the way!
 
 
-## References
+## Cite
 
-**TODO**
+    @article{karamitas2025,
+        title={REcover: towards recovering object files from stripped binary executables},
+        author={Karamitas, Chariton and Kehagias, Athanasios},
+        journal={Journal of Computer Virology and Hacking Techniques},
+        volume={21},
+        number={1},
+        pages={29},
+        year={2025},
+        publisher={Springer}
+    }
