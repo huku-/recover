@@ -79,7 +79,7 @@ class _PdgBuilder(object):
             else:
                 node_type = NodeType.DATA
 
-        segment = ida_segment.getseg(node).sel
+        segment = getattr(ida_segment.getseg(node), "sel", 0)
 
         if _is_named(flags):
             name = idc.get_name(node)
@@ -234,7 +234,7 @@ class _PdgBuilder(object):
 
         for i in range(ida_funcs.get_func_qty()):
             ea = ida_funcs.getn_func(i).start_ea
-            sel = ida_segment.getseg(ea).sel
+            sel = getattr(ida_segment.getseg(ea), "sel", 0)
             if prev_ea and prev_sel == sel:
                 self._add_program_edge(
                     prev_ea,
