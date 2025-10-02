@@ -26,8 +26,11 @@ disable=
     too-many-arguments,
     too-many-branches,
     too-many-locals,
+    too-many-public-methods,
     too-many-statements,
+    ungrouped-imports,
     useless-object-inheritance,
+    use-set-for-membership,
     wrong-import-order
 
 [DESIGN]

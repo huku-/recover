@@ -12,7 +12,6 @@ from networkx import Graph
 import networkx
 
 from recover.graphs import DFG, EdgeClass, EdgeType
-from recover.exporter import Data
 
 
 __author__ = "Chariton Karamitas <huku@census-labs.com>"

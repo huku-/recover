@@ -180,6 +180,7 @@ class Genetic(Optimizer):
             Fitness function callable in a prototype used by PyGAD.
         """
 
+        # pylint: disable=unused-argument
         @functools.wraps(fitness_function.score)
         def _fitness_function(ga: pygad.GA, state: numpy.ndarray, i: int) -> float:
 

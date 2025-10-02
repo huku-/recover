@@ -7,13 +7,12 @@
 """
 
 from recover.cu_map import CUMap
+from recover.exporter import Data
 from recover.fitness_function import DataFitnessFunction
 from recover.state import State
-from recover.util import Data
 
 import functools
 
-from recover import util
 
 
 __author__ = "Chariton Karamitas <huku@census-labs.com>"

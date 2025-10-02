@@ -10,7 +10,6 @@ import importlib.util
 import os
 import runpy
 import site
-import sys
 
 try:
     import ida_pro
@@ -46,12 +45,12 @@ def _bool_env(name: str) -> bool:
     value = os.getenv(name, default="false").lower()
     if value in ("f", "false", "n", "no", "0"):
         return False
-    elif value in ("t", "true", "y", "yes", "1"):
+    if value in ("t", "true", "y", "yes", "1"):
         return True
-    else:
-        raise ValueError(f"{name} is not a valid boolean")
+    raise ValueError(f"{name} is not a valid boolean")
 
 
+# pylint: disable=unused-argument
 def main(argv: list[str]) -> int:
 
     #
