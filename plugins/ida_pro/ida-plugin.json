@@ -1,0 +1,12 @@
+{
+    "IDAMetadataDescriptorVersion": 1,
+    "plugin": {
+        "name": "REcover",
+        "entryPoint": "recover.py",
+        "categories": ["decompilation", "deobfuscation", "other"],
+        "logoPath": "logo/recover-logo.png",
+        "idaVersions": "9.1",
+        "description" : "Recover compile-units from stripped binary executables",
+        "version": "1.0.0"
+    }
+}

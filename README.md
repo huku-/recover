@@ -1,5 +1,7 @@
 # REcover
 
+![REcover](logo/recover-logo.png?raw=true "REcover")
+
 REcover is a tool for approximately recovering the compile-unit layout from
 stripped binary executables. REcover consists of an IDAPython plug-in, used for
 exporting information, and a command line tool, for running various analyses.

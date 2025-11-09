@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   width="263"
+   height="260"
+   viewBox="0 0 263 260"
+   version="1.1"
+   id="svg73"
+   sodipodi:docname="recover-icon-2.svg"
+   inkscape:version="1.1.2 (0a00cf5339, 2022-02-04)"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <sodipodi:namedview
+     id="namedview75"
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1.0"
+     inkscape:pageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     showgrid="true"
+     inkscape:zoom="1.1119515"
+     inkscape:cx="350.28506"
+     inkscape:cy="49.012929"
+     inkscape:window-width="1850"
+     inkscape:window-height="1016"
+     inkscape:window-x="0"
+     inkscape:window-y="0"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="svg73"
+     fit-margin-top="0"
+     fit-margin-left="0"
+     fit-margin-right="0"
+     fit-margin-bottom="0">
+    <inkscape:grid
+       type="xygrid"
+       id="grid157"
+       originx="-20"
+       originy="-30" />
+  </sodipodi:namedview>
+  <defs
+     id="defs61">
+    <style
+       id="style59">
+      .dark-piece { fill: #2C4A52; }
+      .cyan-piece { fill: #4A9DB5; }
+      .outline-piece { fill: none; stroke: #6B8A92; stroke-width: 4; }
+      .text-color { fill: #2C4A52; }
+    </style>
+  </defs>
+  <path
+     class="dark-piece"
+     d="M 30,30 H 60 V 15 C 60,5 70,0 80,0 c 10,0 20,5 20,15 v 15 h 30 v 30 h 15 c 10,0 15,10 15,20 0,10 -5,20 -15,20 h -15 v 30 H 30 V 100 H 15 C 5,100 0,90 0,80 0,70 5,60 15,60 h 15 z"
+     id="path63" />
+  <path
+     class="outline-piece"
+     d="m 129.97404,32.03378 h 29.96582 V 17.403911 c 0,-9.753243 9.98861,-14.629866 19.97722,-14.629866 9.98861,0 19.97723,4.876623 19.97723,14.629866 V 32.03378 h 29.96582 v 29.25973 h 14.98292 c 9.98859,0 14.9829,9.75325 14.9829,19.50649 0,9.75324 -4.99431,19.50649 -14.9829,19.50649 h -14.98292 v 29.25973 h -29.96582 v 14.62986 c 0,9.75325 -9.98862,14.62988 -19.97723,14.62988 -9.98861,0 -19.97722,-4.87663 -19.97722,-14.62988 v -14.62986 h -29.96582 v -29.25973 h 14.98291 c 9.98862,0 14.98291,-9.75325 14.98291,-19.50649 0,-9.75324 -4.99429,-19.50649 -14.98291,-19.50649 h -14.98291 z"
+     id="path65" />
+  <path
+     class="cyan-piece"
+     d="m 30,130 h 70 v 15 c 0,10 -10,15 -20,15 -10,0 -20,-5 -20,-15 v -15 h 70 v 30 h 15 c 10,0 15,10 15,20 0,10 -5,20 -15,20 h -15 v 30 H 30 V 200 H 15 C 5,200 0,190 0,180 0,170 5,160 15,160 h 15 z"
+     id="path67" />
+  <path
+     class="dark-piece"
+     d="m 128,130 h 31.15384 v 15 c 0,10 10.38463,15 20.76923,15 10.38462,0 20.76924,-5 20.76924,-15 v -15 h 31.15385 v 30 h 15.57691 C 257.80769,160 263,170 263,180 c 0,10 -5.19231,20 -15.57693,20 h -15.57691 v 30 h -31.15385 v 15 c 0,10 -10.38462,15 -20.76924,15 -10.3846,0 -20.76923,-5 -20.76923,-15 V 230 H 128 v -30 h 15.57693 c 10.3846,0 15.57691,-10 15.57691,-20 0,-10 -5.19231,-20 -15.57691,-20 H 128 Z"
+     id="path69"
+     style="stroke-width:1.01905" />
+</svg>
