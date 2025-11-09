@@ -4,7 +4,7 @@
         "name": "REcover",
         "entryPoint": "plugins/ida_pro/recover.py",
         "categories": ["decompilation", "deobfuscation", "other"],
-        "logoPath": "logo/recover-logo.png",
+        "logoPath": "logo/recover-icon.png",
         "idaVersions": "9.1",
         "description" : "Recover compile-units from stripped binary executables",
         "version": "1.0.0"
