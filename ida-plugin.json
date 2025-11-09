@@ -2,7 +2,7 @@
     "IDAMetadataDescriptorVersion": 1,
     "plugin": {
         "name": "REcover",
-        "entryPoint": "recover.py",
+        "entryPoint": "plugins/ida_pro/recover.py",
         "categories": ["decompilation", "deobfuscation", "other"],
         "logoPath": "logo/recover-logo.png",
         "idaVersions": "9.1",
