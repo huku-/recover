@@ -7,6 +7,15 @@
         "logoPath": "logo/recover-icon.png",
         "idaVersions": "9.1",
         "description" : "Recover compile-units from stripped binary executables",
-        "version": "1.0.0"
+        "version": "1.0.0",
+        "urls": {
+            "repository": "https://github.com/huku-/recover"
+        },
+        "authors": [{
+            "name": "huku",
+            "email": "huku@grhack.net"
+        }],
+        "keywords": ["approximate", "compile-units", "object files", "recover"],
+        "license": "GPL 3.0"
     }
 }
