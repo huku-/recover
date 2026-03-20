@@ -29,7 +29,7 @@ def main() -> int:
     ida_auto.auto_wait()
 
     exporter = ida_pro.IdaPro()
-    recover.export(exporter, path.parent)
+    recover.export(exporter, path.with_suffix(".export"))
 
     return os.EX_OK
 

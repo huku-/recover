@@ -4,7 +4,7 @@
 
 REcover is a tool for approximately recovering the compile-unit layout from
 stripped binary executables. REcover consists of an IDAPython plug-in, used for
-exporting information, and a command line tool, for running various analyses.
+exporting information, and a command-line tool for running various analyses.
 
 
 ## Installation
@@ -19,7 +19,7 @@ exporting information, and a command line tool, for running various analyses.
         $ cd /tmp
         $ git clone --recurse-submodules https://github.com/huku-/recover.git
         $ cd recover
-        $ pip install -r .
+        $ pip install .
 
 3. Make sure everything works as expected:
 
@@ -34,14 +34,14 @@ exporting information, and a command line tool, for running various analyses.
 Let's analyze ELF binary `sha256sum` from `coreutils-7.6-O3` of the DeepBinDiff
 dataset:
 
-    $ ls -la /tmp/example/sha256sum
-    -rwxr-x--- 1 huku huku 239696 Jun  4 18:57 /tmp/example/sha256sum
-    $ file /tmp/example/sha256sum
-    /tmp/example/sha256sum: ELF 64-bit LSB executable, x86-64, version 1 (SYSV), dynamically linked, interpreter /lib64/ld-linux-x86-64.so.2, for GNU/Linux 2.6.32, BuildID[sha1]=c08bcb9aede425a19d263c5e5d9c55b8f9f63701, with debug_info, not stripped
+    $ ls -la /tmp/sha256sum
+    -rwxr-x--- 1 huku huku 239696 Jun  4 18:57 /tmp/sha256sum
+    $ file /tmp/sha256sum
+    /tmp/sha256sum: ELF 64-bit LSB executable, x86-64, version 1 (SYSV), dynamically linked, interpreter /lib64/ld-linux-x86-64.so.2, for GNU/Linux 2.6.32, BuildID[sha1]=c08bcb9aede425a19d263c5e5d9c55b8f9f63701, with debug_info, not stripped
 
-Even though the above executable comes with debug information (i.e. it's not
-actually stripped), the latter is not used by REcover when estimating the
-compile-unit layout.
+Even though the above executable comes with debug information (i.e., it's not
+actually stripped), the latter is not used by REcover to estimate the compile-unit
+layout.
 
 
 ### <u>Export data using IDA Pro</u>
@@ -50,16 +50,17 @@ Fire up IDA Pro and run the REcover exporter. Either navigate to `File` &rarr;
 `Script file...` and choose **main.py** or run the following command:
 
     RECOVER_EXIT=1 ida64 -A -S/tmp/recover/src/recover/main.py \
-        /tmp/example/sha256sum
+        /tmp/sha256sum
 
-When the process exits, the following files should have been created in the same
-directory where the ELF executable resides:
+This creates a directory named **sha256sum.export** (the IDB database name with
+its extension replaced by **.export**), in the same directory as the ELF executable,
+containing the following files:
 
-    $ ls -la /tmp/example/*.pcl
-    -rw-r--r-- 1 huku huku 34817 Jun  4 22:35 /tmp/example/afcg.pcl
-    -rw-r--r-- 1 huku huku 35010 Jun  4 22:35 /tmp/example/dfg.pcl
-    -rw-r--r-- 1 huku huku 60956 Jun  4 22:35 /tmp/example/pdg.pcl
-    -rw-r--r-- 1 huku huku  1354 Jun  4 22:35 /tmp/example/segs.pcl
+    $ ls -la /tmp/sha256sum.export/*.pcl
+    -rw-r--r-- 1 huku huku 34817 Jun  4 22:35 /tmp/sha256sum.export/afcg.pcl
+    -rw-r--r-- 1 huku huku 35010 Jun  4 22:35 /tmp/sha256sum.export/dfg.pcl
+    -rw-r--r-- 1 huku huku 60956 Jun  4 22:35 /tmp/sha256sum.export/pdg.pcl
+    -rw-r--r-- 1 huku huku  1354 Jun  4 22:35 /tmp/sha256sum.export/segs.pcl
 
 
 ### <u>Estimate compile-units</u>
@@ -70,10 +71,10 @@ line as shown below:
     $ recover --estimator agglnse \
         --fitness-function modularity \
         --optimizer brute \
-        -k /tmp/example/estimated_cu_map.pcl \
-        -j /tmp/example/estimated_cu_map.json \
+        -k /tmp/estimated_cu_map.pcl \
+        -j /tmp/estimated_cu_map.json \
         --debug \
-        /tmp/example
+        /tmp/sha256sum.export
 
 There is a variety of estimators (`--estimator`), fitness functions (`--fitness-function`)
 and optimizers (`--optimizer`) to choose from. See `recover -h` for more information.

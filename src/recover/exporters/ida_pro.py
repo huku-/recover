@@ -10,6 +10,7 @@ from ida_funcs import func_t
 
 import itertools
 import logging
+import mmap
 
 import networkx
 
@@ -363,13 +364,21 @@ class IdaPro(Exporter):
             else:
                 sclass = SegmentClass.INVALID
 
+            perm = 0
+            if seg.perm & ida_segment.SEGPERM_READ:
+                perm |= mmap.PROT_READ
+            if seg.perm & ida_segment.SEGPERM_WRITE:
+                perm |= mmap.PROT_WRITE
+            if seg.perm & ida_segment.SEGPERM_EXEC:
+                perm |= mmap.PROT_EXEC
+
             segs.append(
                 Segment(
                     ida_segment.get_segm_name(seg),
                     seg.start_ea,
                     seg.end_ea,
                     seg.sel,
-                    seg.perm,
+                    perm,
                     sclass,
                 )
             )
