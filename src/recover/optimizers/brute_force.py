@@ -26,7 +26,7 @@ class BruteForce(Optimizer):
         self, data: Data, cu_map: CUMap, fitness_function: type[FitnessFunction]
     ) -> None:
         super(BruteForce, self).__init__(data, cu_map, fitness_function)
-        self._cu_scores = {}
+        self._cu_scores: dict[int, float] = {}
 
     def _optimize(self, cu: CUInfo, next_cu: CUInfo) -> tuple[int, int]:
 
@@ -110,7 +110,7 @@ class BruteForceFast(Optimizer):
         self, data: Data, cu_map: CUMap, fitness_function: type[FitnessFunction]
     ) -> None:
         super(BruteForceFast, self).__init__(data, cu_map, fitness_function)
-        self._cu_scores = {}
+        self._cu_scores: dict[int, float] = {}
 
     def _optimize(self, cu: CUInfo, next_cu: CUInfo) -> tuple[int, int]:
 

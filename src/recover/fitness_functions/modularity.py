@@ -49,7 +49,7 @@ class Modularity(DataFitnessFunction):
     def score(self, state: State) -> float:
         cus = state.to_cu_list()
         data_refs = self._data_refs
-        modularity = 0
+        modularity = 0.
         for cu in cus:
             community = set(cu) | functools.reduce(
                 set.union, (data_refs[func] for func in cu)
