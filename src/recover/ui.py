@@ -29,7 +29,9 @@ def main() -> int:
     ida_auto.auto_wait()
 
     exporter = ida_pro.IdaPro()
-    recover.export(exporter, path.with_suffix(".export"))
+    path = path.with_suffix(".export")
+    path.mkdir(exist_ok=True)
+    recover.export(exporter, path)
 
     return os.EX_OK
 
